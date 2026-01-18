@@ -130,6 +130,8 @@ namespace DevLog.Api.Application.Services
             post.Thumbnail = dto.Thumbnail;
 
             await _db.SaveChangesAsync();
+
+           // return post.PostId;
         }
         public async Task PublishAsync(int postId, string authorId)
         {
