@@ -21,8 +21,9 @@ public class Post
     [Required]
     public string Content { get; set; }
 
+    [Required]
     public PostStatus Status { get; set; } = PostStatus.Draft;
-
+    public DateTime CreatedAt { get; set; }
     // OWNER
     public string AuthorId { get; set; }
     public AppUser Author { get; set; }
