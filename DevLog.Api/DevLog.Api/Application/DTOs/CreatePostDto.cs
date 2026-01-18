@@ -7,6 +7,7 @@ namespace DevLog.Api.Application.DTOs
         [Required, MaxLength(100)]
         public string Title { get; set; }
         [Required]
+        public string Slug { get; set; }
         public string Content { get; set; }
         [Required]
         public string Thumbnail { get; set; }
