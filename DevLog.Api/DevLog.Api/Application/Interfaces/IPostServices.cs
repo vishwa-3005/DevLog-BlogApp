@@ -3,7 +3,7 @@ using DevLog.Api.Common.Enums;
 
 namespace DevLog.Api.Application.Interfaces
 {
-    public interface IPostService
+    public interface IPostServices
     {
         // Create
         Task<int> CreateDraftAsync(CreatePostDto dto, string authorId);

@@ -11,8 +11,8 @@ namespace DevLog.Api.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private readonly IProfileService _profileService;
-        public ProfileController(IProfileService profileService)
+        private readonly IProfileServices _profileService;
+        public ProfileController(IProfileServices profileService)
         {
             _profileService = profileService;
         }

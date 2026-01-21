@@ -10,7 +10,7 @@ using Slugify;
 namespace DevLog.Api.Application.Services
 {
 
-    public class PostServices : IPostService
+    public class PostServices : IPostServices
     {
         private readonly ApplicationDbContext _db;
 
