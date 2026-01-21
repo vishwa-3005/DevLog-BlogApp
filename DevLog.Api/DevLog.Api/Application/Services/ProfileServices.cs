@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DevLog.Api.Application.Services
 {
-    public class ProfileServices : IProfileService
+    public class ProfileServices : IProfileServices
     {
         private readonly ApplicationDbContext _db;
 
