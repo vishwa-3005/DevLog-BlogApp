@@ -12,9 +12,9 @@ namespace DevLog.Api.Controllers
     [Route("api/posts")]
     public class PostsController : ControllerBase
     {
-        private readonly IPostService _postService;
+        private readonly IPostServices _postService;
 
-        public PostsController(IPostService postService)
+        public PostsController(IPostServices postService)
         {
             _postService = postService;
         }
