@@ -10,7 +10,7 @@ using Slugify;
 namespace DevLog.Api.Application.Services
 {
 
-    public class PostServices : IPostService
+    public class PostServices : IPostServices
     {
         private readonly ApplicationDbContext _db;
 
@@ -130,6 +130,8 @@ namespace DevLog.Api.Application.Services
             post.Thumbnail = dto.Thumbnail;
 
             await _db.SaveChangesAsync();
+
+           // return post.PostId;
         }
         public async Task PublishAsync(int postId, string authorId)
         {
