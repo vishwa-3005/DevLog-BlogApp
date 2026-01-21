@@ -1,5 +1,6 @@
 ﻿using DevLog.Api.Application.DTOs;
 using DevLog.Api.Application.Interfaces;
+using DevLog.Api.Common.Enums;
 using DevLog.Api.Common.Exceptions;
 using DevLog.Api.Infrastructure.Data;
 using DevLog.Api.Migrations;
@@ -16,16 +17,19 @@ namespace DevLog.Api.Application.Services
             _db = db;
         }
 
-        public async Task<int> CreateCommentAsync(CommentDto dto, string userId)
+        public async Task<CommentDetailDto> CreateCommentAsync(CreateCommentDto dto, string userId, int postId)
         {
-            var post = _db.Posts.Find(dto.PostId);
+            var post = await _db.Posts.FindAsync(postId);
             if (post == null)
                 throw new NotFoundException("Post not found");
+
+            if (post.Status != PostStatus.Published)
+                throw new BadRequestException("Cannot comment on unpublished post");
 
             var comment = new Comment
             {
                 Content = dto.Content,
-                PostId = dto.PostId,
+                PostId = postId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -34,21 +38,33 @@ namespace DevLog.Api.Application.Services
             _db.Comments.Add(comment);
             await _db.SaveChangesAsync();
 
-            return comment.CommentId;
+            var commentDetail = new CommentDetailDto
+            {
+                CommentId = comment.CommentId,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                UpdatedAt = comment.UpdatedAt,
+                AuthorId = comment.UserId,
+                AuthorName = comment.User.UserName,
+                AuthorProfile = getUserProfile(comment.UserId)
+            };
+
+            return commentDetail;
         }
         //edit comment
-        public async Task UpdateCommentAsync(UpdateCommentDto dto, string userId)
+        public async Task UpdateCommentAsync(UpdateCommentDto dto, string userId, int commentId)
         {
-            var post = _db.Posts.Find(dto.PostId);
-            if (post == null)
-                throw new NotFoundException("Post not found");
 
-            var comment = _db.Comments.Find(dto.CommentId);
+            var comment = await _db.Comments.FindAsync(commentId);
             if (comment == null)
                 throw new NotFoundException("Comment not found");
 
             if (comment.UserId != userId)
                 throw new ForbiddenException("Not comment Owner");
+
+            var post = await _db.Posts.FindAsync(comment.PostId);
+            if (post == null)
+                throw new NotFoundException("Post not found");
 
             if (dto.Content != null)
                 comment.Content = dto.Content;
@@ -61,7 +77,7 @@ namespace DevLog.Api.Application.Services
         //get all comments
         public async Task<List<CommentDetailDto>> GetAllCommentsAsync(int postId)
         {
-            var post = _db.Posts.Find(postId);
+            var post = await _db.Posts.FindAsync(postId);
             if (post == null)
                 throw new NotFoundException("Post not found");
 
@@ -84,7 +100,7 @@ namespace DevLog.Api.Application.Services
         //delete comment
         public async Task DeleteCommentAsync(int commentId, string userId)
         {
-            var comment = _db.Comments.Find(commentId);
+            var comment = await _db.Comments.FindAsync(commentId);
             if (comment == null)
                 throw new NotFoundException("Comment not found");
 
@@ -99,7 +115,7 @@ namespace DevLog.Api.Application.Services
 
         string getUserProfile(string userId)
         {
-            return _db.UsersProfiles.Where(u => u.UserId == userId).Select(u => u.ProfileImage).ToString();
+             return _db.UsersProfiles.Find(userId).ProfileImage;
         }
     }
 }

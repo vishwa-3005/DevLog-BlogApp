@@ -5,9 +5,9 @@ namespace DevLog.Api.Application.Interfaces
     public interface ICommentServices
     {
         //create comment
-        public Task<int> CreateCommentAsync(CommentDto dto, string userId);
+        public Task<CommentDetailDto> CreateCommentAsync(CreateCommentDto dto, string userId, int postId);
         //edit comment
-        public Task UpdateCommentAsync(UpdateCommentDto dto, string userId);
+        public Task UpdateCommentAsync(UpdateCommentDto dto, string userId, int commentId);
         //get all comments
         public Task<List<CommentDetailDto>> GetAllCommentsAsync(int postId);
         //delete comment
