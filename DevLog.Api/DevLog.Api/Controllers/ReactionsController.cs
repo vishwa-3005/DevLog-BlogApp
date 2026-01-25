@@ -16,7 +16,7 @@ namespace DevLog.Api.Controllers
             _reactionsServices = reactionsServices;
         }
 
-        [HttpPut("{postId}")]
+        [HttpPut]
         [Authorize]
         public async Task<IActionResult> ToggleLikePost(int postId)
         {
