@@ -7,11 +7,11 @@ namespace DevLog.Api.Application.Interfaces
         //register user
         public Task<int> RegisterUserAsync(RegisterDto dto);
         //logs in user
-        public Task LoginUserAsync(LoginDto dto);
+        public Task<string> LoginUserAsync(LoginDto dto);
         //logs out user
-        public Task LogOutUserAsync(string userId);
-        //generate refresh token
-        public Task<string> GenerateRefreshToken();
+        public Task LogOutUserAsync(string token);
+        //refresh
+        public Task<string> RefreshAsync(string token);
         
     }
 }
