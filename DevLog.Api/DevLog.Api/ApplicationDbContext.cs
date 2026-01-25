@@ -20,7 +20,7 @@ namespace DevLog.Api.Infrastructure.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Reaction> Reactions { get; set; }
         public DbSet<UserProfile> UsersProfiles { get; set; }
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
