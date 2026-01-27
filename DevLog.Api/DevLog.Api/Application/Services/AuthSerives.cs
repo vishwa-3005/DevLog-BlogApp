@@ -33,7 +33,6 @@ namespace DevLog.Api.Application.Services
 
         public async Task<string> RefreshAsync(string token)
         {
-
                 var tokens = await _db.RefreshTokens
                     .Include(r => r.User)
                     .Where(r =>
