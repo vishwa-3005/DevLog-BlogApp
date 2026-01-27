@@ -1,3 +1,4 @@
+using DevLog.Api.Application.Handlers;
 using DevLog.Api.Infrastructure.Data;
 using DevLog.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -91,11 +92,18 @@ class Program
             });
         });
 
+        // Global exception handling
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails(); // recommended
+
         // Build app
 
         var app = builder.Build();
 
         // Middleware
+
+        //  Must be EARLY
+        app.UseExceptionHandler();
 
         if (app.Environment.IsDevelopment())
         {
