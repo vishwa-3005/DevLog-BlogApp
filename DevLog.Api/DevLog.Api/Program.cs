@@ -1,4 +1,6 @@
 using DevLog.Api.Application.Handlers;
+using DevLog.Api.Application.Interfaces;
+using DevLog.Api.Application.Services;
 using DevLog.Api.Infrastructure.Data;
 using DevLog.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +31,8 @@ class Program
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
+
+        builder.Services.AddScoped<IAuthServices, AuthServices>();
 
         builder.Services.AddAuthentication(options =>
         {
@@ -66,6 +70,11 @@ class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
+            options.AddServer(new OpenApiServer
+            {
+                Url = "https://localhost:7140"
+            });
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -77,20 +86,21 @@ class Program
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
             {
+                Reference = new OpenApiReference
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
-            });
+            },
+            Array.Empty<string>()
+        }
+    });
         });
+
 
         // Global exception handling
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
