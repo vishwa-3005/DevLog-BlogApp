@@ -14,6 +14,6 @@ namespace DevLog.Api.Application.DTOs
         [Required]
         public string Bio { get; set; }
         public string password { get; set; }
-        public IFormFile profile { get; set; }
+        public IFormFile? profile { get; set; } 
     }
 }

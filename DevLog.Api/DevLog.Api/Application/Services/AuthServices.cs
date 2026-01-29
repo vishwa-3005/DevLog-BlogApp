@@ -17,13 +17,13 @@ using Azure;
 
 namespace DevLog.Api.Application.Services
 {
-    public class AuthSerives : IAuthServices
+    public class AuthServices : IAuthServices
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IConfiguration _config;
-        public AuthSerives(ApplicationDbContext db, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration config)
+        public AuthServices(ApplicationDbContext db, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration config)
         {
             _db = db;
             _userManager = userManager;
@@ -122,35 +122,52 @@ namespace DevLog.Api.Application.Services
 
         public async Task<int> RegisterUserAsync(RegisterDto dto)
         {
-            var user = await _db.UsersProfiles.Where(u => u.Email == dto.email).FirstOrDefaultAsync();
-            if(user is not null)
-            {
-                throw new UserAlreadyExistsException("User Already Exists!");
-            }
+            var existingUser = await _userManager.FindByEmailAsync(dto.email);
+            if (existingUser != null)
+                throw new UserAlreadyExistsException("User already exists");
 
-            var newUser = new AppUser { FullName = dto.fullName };
+            var newUser = new AppUser
+            {
+                FullName = dto.fullName,
+                Email = dto.email,
+                UserName = dto.username,
+                EmailConfirmed = true
+            };
 
             var result = await _userManager.CreateAsync(newUser, dto.password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                var newProfile = new UserProfile
-                {
-                    UserName = dto.username,
-                    Email = dto.email,
-                    DOB = dto.Dob,
-                    Bio = dto.Bio,
-                    UserId = newUser.Id
-                };
-
-                _db.UsersProfiles.Add(newProfile);
-                await _db.SaveChangesAsync();
-
-                return newProfile.Id;
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
             }
-            else throw new Exception("Failed to create User");
-           
+
+
+            await _userManager.AddToRoleAsync(newUser, "User");
+
+            var profile = new UserProfile
+            {
+                UserName = dto.username,
+                Email = dto.email,
+                DOB = dto.Dob,
+                Bio = dto.Bio,
+                UserId = newUser.Id
+            };
+
+            await _db.UsersProfiles.AddAsync(profile);
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
+            }
+
+
+            return profile.Id;
         }
+
 
         private string GenerateRefreshToken()
         {
