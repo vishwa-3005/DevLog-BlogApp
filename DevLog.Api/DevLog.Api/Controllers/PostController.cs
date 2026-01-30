@@ -10,11 +10,11 @@ namespace DevLog.Api.Controllers
 {
     [ApiController]
     [Route("api/posts")]
-    public class PostsController : ControllerBase
+    public class PostController : ControllerBase
     {
         private readonly IPostServices _postService;
 
-        public PostsController(IPostServices postService)
+        public PostController(IPostServices postService)
         {
             _postService = postService;
         }

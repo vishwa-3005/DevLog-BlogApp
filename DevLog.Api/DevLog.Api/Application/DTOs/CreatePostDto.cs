@@ -4,14 +4,13 @@ namespace DevLog.Api.Application.DTOs
 {
     public class CreatePostDto
     {
-        [Required, MaxLength(100)]
+        [Required]
         public string Title { get; set; }
         [Required]
-        public string Slug { get; set; }
         public string Content { get; set; }
-        [Required]
-        public string Thumbnail { get; set; }
-        [Required, MaxLength(300)]
+        public IFormFile? Thumbnail { get; set; }
+
+        [Required, MaxLength(200)]
         public string Description { get; set; }
     }
 }

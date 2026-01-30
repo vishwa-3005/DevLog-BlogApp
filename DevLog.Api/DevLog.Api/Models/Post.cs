@@ -6,22 +6,15 @@ public class Post
 {
     public int PostId { get; set; }
 
-    [Required, MaxLength(100)]
     public string Title { get; set; }
-
-    [Required]
     public string Description { get; set; }
 
-    [Required]
     public string Slug { get; set; }
 
-    [Required]
-    public string Thumbnail { get; set; }
+    public string Thumbnail { get; set; } = "";
 
-    [Required]
     public string Content { get; set; }
 
-    [Required]
     public PostStatus Status { get; set; } = PostStatus.Draft;
     public DateTime CreatedAt { get; set; }
     // OWNER

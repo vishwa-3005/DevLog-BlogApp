@@ -33,6 +33,7 @@ class Program
         .AddDefaultTokenProviders();
 
         builder.Services.AddScoped<IAuthServices, AuthServices>();
+        builder.Services.AddScoped<IPostServices, PostServices>();
 
         builder.Services.AddAuthentication(options =>
         {
