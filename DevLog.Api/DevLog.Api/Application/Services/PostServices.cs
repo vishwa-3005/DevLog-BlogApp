@@ -27,12 +27,13 @@ namespace DevLog.Api.Application.Services
                 AuthorId = authorId,
                 Content = dto.Content,
                 Description = dto.Description,
-                Thumbnail = dto.Thumbnail,
+                Thumbnail = "default.png",
                 Title = dto.Title,
                 Slug = generateSlug(dto.Title),
                 Status = PostStatus.Draft
             };
-            _db.Posts.AddAsync(newPost);
+
+            await _db.Posts.AddAsync(newPost);
             await _db.SaveChangesAsync();
 
             var version = new PostVersion
@@ -41,7 +42,9 @@ namespace DevLog.Api.Application.Services
                 CreatedAt = DateTime.Now,
                 UpdateddAt = DateTime.Now
             };
-            _db.PostVersions.Add(version);
+
+            await _db.PostVersions.AddAsync(version);
+
             await _db.SaveChangesAsync();
 
             return newPost.PostId;
@@ -51,11 +54,14 @@ namespace DevLog.Api.Application.Services
         public async Task<PostDetailDto> GetByIdAsync(int postId, string? currentUserId)
         {
 
-            var post = await _db.Posts.FindAsync(postId);
+            var post = await _db.Posts.Include(p => p.Author).Include(p => p.Reactions).FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
                 throw new NotFoundException("Post Not Found!");
 
-            var version = _db.PostVersions.Where(pv => pv.PostId == postId).Last();
+            var version = await _db.PostVersions
+                .Where(pv => pv.PostId == postId)
+                .OrderByDescending(pv => pv.CreatedAt)
+                .FirstOrDefaultAsync();
 
             var postDetail = new PostDetailDto
             {
@@ -96,6 +102,8 @@ namespace DevLog.Api.Application.Services
         public async Task<List<PostSummaryDto>> GetByAuthorAsync(string authorId)
         {
             var list = await _db.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Reactions)
                 .Where(p => p.AuthorId == authorId && p.Status == PostStatus.Published)
                 .Select(p =>
                 new PostSummaryDto
@@ -117,7 +125,7 @@ namespace DevLog.Api.Application.Services
         // Update
         public async Task UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId)
         {
-            var post = _db.Posts.Find(postId);
+            var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
                 throw new NotFoundException("Post not found");
 
@@ -162,7 +170,7 @@ namespace DevLog.Api.Application.Services
         // Delete 
         public async Task ArchiveAsync(int postId, string authorId)
         {
-            var post = await _db.Posts.FindAsync(postId);
+            var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
 
             if (post == null)
                 throw new NotFoundException("Post not found");
@@ -170,8 +178,8 @@ namespace DevLog.Api.Application.Services
             if (post.AuthorId != authorId)
                 throw new ForbiddenException("Not the post owner");
 
-            if (post.Status != PostStatus.Draft)
-                throw new InvalidOperationException("Only drafts can be published");
+            if (post.Status != PostStatus.Published)
+                throw new InvalidOperationException("Only Published posts can be Archived");
 
             post.Status = PostStatus.Archived;
 
