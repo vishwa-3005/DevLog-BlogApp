@@ -65,7 +65,7 @@ namespace DevLog.Api.Application.Services
             return accessToken;
         }
 
-        public async Task<string> LoginUserAsync(LoginDto dto)
+        public async Task<(string accessToken, string refreshToken)> LoginUserAsync(LoginDto dto)
         {
             //check if user exists
             var user = await _userManager.FindByEmailAsync(dto.email);
@@ -78,6 +78,10 @@ namespace DevLog.Api.Application.Services
             {
                 throw new InvalidInputException("Incorrect Password!");
             }
+            //revoke old tokens
+            await _db.RefreshTokens
+                    .Where(t => t.UserId == user.Id && !t.IsRevoked)
+                    .ExecuteUpdateAsync(t => t.SetProperty(x => x.IsRevoked, true));
 
             //generate access token
             var accessToken = CreateAccessToken(user);
@@ -96,8 +100,8 @@ namespace DevLog.Api.Application.Services
             _db.RefreshTokens.Add(refreshEntity);
             await _db.SaveChangesAsync();
 
-            //return access token
-            return accessToken;
+            //return access and refresh token
+            return (accessToken, refreshToken);
         }
 
         public async Task LogOutUserAsync(string token)
