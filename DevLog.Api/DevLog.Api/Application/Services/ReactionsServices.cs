@@ -16,11 +16,11 @@ namespace DevLog.Api.Application.Services
 
         public async Task ToggleLikePostAsync(int postId, string userId)
         {
-            var post = _db.Posts.Find(postId);
+            var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
             if(post == null)
                 throw new NotFoundException("Post Not Found");
 
-            var likedPost = await _db.Reactions.Where(p => p.PostId == postId && p.UserId == userId).FirstOrDefaultAsync();
+            var likedPost = await _db.Reactions.FirstOrDefaultAsync(p => p.PostId == postId && p.UserId == userId);
 
             if (likedPost == null)
             {

@@ -5,6 +5,7 @@ using DevLog.Api.Common.Exceptions;
 using DevLog.Api.Infrastructure.Data;
 using DevLog.Api.Migrations;
 using Humanizer;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevLog.Api.Application.Services
 {
@@ -35,7 +36,9 @@ namespace DevLog.Api.Application.Services
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _db.Comments.Add(comment);
+            var up = await _db.UsersProfiles.Include(u => u.User).FirstOrDefaultAsync(u => u.UserId == userId);
+
+            await _db.Comments.AddAsync(comment);
             await _db.SaveChangesAsync();
 
             var commentDetail = new CommentDetailDto
@@ -46,7 +49,7 @@ namespace DevLog.Api.Application.Services
                 UpdatedAt = comment.UpdatedAt,
                 AuthorId = comment.UserId,
                 AuthorName = comment.User.UserName,
-                AuthorProfile = getUserProfile(comment.UserId)
+                AuthorProfile = up.ProfileImage
             };
 
             return commentDetail;
@@ -81,20 +84,26 @@ namespace DevLog.Api.Application.Services
             if (post == null)
                 throw new NotFoundException("Post not found");
 
-            var comments = _db.Comments
+            var comments = await _db.Comments
                 .Where(c => c.PostId == postId)
-                .Select(c => new CommentDetailDto
+                .Include(c => c.User)
+                .Join(
+                    _db.UsersProfiles,
+                    c => c.UserId,
+                    up => up.UserId,
+                    (c, up) => new { c, up }
+                )
+                .Select(x => new CommentDetailDto
                 {
-                    CommentId = c.CommentId,
-                    Content = c.Content,
-                    CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt,
-                    AuthorId = c.UserId,
-                    AuthorName = c.User.UserName,
-                    AuthorProfile = getUserProfile(c.UserId)
-                })
-                .ToList();
-
+                    CommentId = x.c.CommentId,
+                    Content = x.c.Content,
+                    CreatedAt = x.c.CreatedAt,
+                    UpdatedAt = x.c.UpdatedAt,
+                    AuthorId = x.c.UserId,
+                    AuthorName = x.c.User.UserName,
+                    AuthorProfile = x.up.ProfileImage
+                }).ToListAsync();
+                
             return comments;
         }
         //delete comment
@@ -111,11 +120,6 @@ namespace DevLog.Api.Application.Services
 
             await _db.SaveChangesAsync();
            
-        }
-
-        string getUserProfile(string userId)
-        {
-             return _db.UsersProfiles.Find(userId).ProfileImage;
         }
     }
 }

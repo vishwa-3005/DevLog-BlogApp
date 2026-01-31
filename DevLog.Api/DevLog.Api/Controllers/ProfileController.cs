@@ -17,7 +17,7 @@ namespace DevLog.Api.Controllers
             _profileService = profileService;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<IActionResult> GetProfile(int profileId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -27,7 +27,7 @@ namespace DevLog.Api.Controllers
             return Ok(profile);
         } //api/get/profiles/{id}
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [Authorize]
         public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto, int profileId)
         {
