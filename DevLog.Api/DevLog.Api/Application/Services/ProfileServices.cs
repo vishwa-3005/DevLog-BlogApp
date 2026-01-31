@@ -4,6 +4,7 @@ using DevLog.Api.Common.Enums;
 using DevLog.Api.Common.Exceptions;
 using DevLog.Api.Infrastructure.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevLog.Api.Application.Services
 {
@@ -17,7 +18,7 @@ namespace DevLog.Api.Application.Services
         }
         public async Task<ProfileDto> GetProfileAsync(string CurrentUserId, int profileId)
         {
-            var profile = _db.UsersProfiles.Find(profileId);
+            var profile = await _db.UsersProfiles.Include(u => u.User).FirstOrDefaultAsync(up => up.Id == profileId);
             if (profile == null)
                 throw new NotFoundException("Profile Not Found");
 
@@ -64,6 +65,8 @@ namespace DevLog.Api.Application.Services
             {
                 ProfileId = profile.Id,
                 Bio = profile.Bio,
+                Email = profile.Email,
+                Username = profile.UserName,
                 DOB = profile.DOB,
                 ProfileImage = profile.ProfileImage,
                 Posts = userPosts
@@ -74,7 +77,7 @@ namespace DevLog.Api.Application.Services
 
         public async Task UpdateProfileAsync(UpdateProfileDto dto, string CurrentUserId, int profileId)
         {
-            var profile = _db.UsersProfiles.Find(profileId);
+            var profile = await _db.UsersProfiles.FindAsync(profileId);
             if (profile == null)
                 throw new NotFoundException("Profile Not Found");
 
@@ -82,7 +85,7 @@ namespace DevLog.Api.Application.Services
                 throw new ForbiddenException("Not The Profile Owner!");
 
             if (dto.Bio != null) profile.Bio = dto.Bio;
-            if (dto.DOB != null) profile.DOB = dto.DOB;
+            /*if (dto.DOB != null) profile.DOB = dto.DOB;*/
             if (dto.ProfileImage != null) profile.ProfileImage = dto.ProfileImage;
             if (dto.Username != null) profile.UserName = dto.Username;
 

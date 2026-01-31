@@ -34,6 +34,9 @@ class Program
 
         builder.Services.AddScoped<IAuthServices, AuthServices>();
         builder.Services.AddScoped<IPostServices, PostServices>();
+        builder.Services.AddScoped<IReactionsServices, ReactionsServices>();
+        builder.Services.AddScoped<ICommentServices, CommentServices>();
+        builder.Services.AddScoped<IProfileServices, ProfileServices>();
 
         builder.Services.AddAuthentication(options =>
         {
