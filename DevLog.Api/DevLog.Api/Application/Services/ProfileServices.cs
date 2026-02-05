@@ -11,10 +11,12 @@ namespace DevLog.Api.Application.Services
     public class ProfileServices : IProfileServices
     {
         private readonly ApplicationDbContext _db;
+        private readonly ICloudinaryServices _cs;
 
-        public ProfileServices(ApplicationDbContext db)
+        public ProfileServices(ApplicationDbContext db, ICloudinaryServices cs)
         {
             _db = db;
+            _cs = cs;
         }
         public async Task<ProfileDto> GetProfileAsync(string CurrentUserId, int profileId)
         {
@@ -68,8 +70,8 @@ namespace DevLog.Api.Application.Services
                 Email = profile.Email,
                 Username = profile.UserName,
                 DOB = profile.DOB,
-                ProfileImage = profile.ProfileImage,
-                Posts = userPosts
+                ProfileImage = profile.ProfileImageUrl,
+                Posts = userPosts,
             };
 
             return userProfile;
@@ -86,7 +88,25 @@ namespace DevLog.Api.Application.Services
 
             if (dto.Bio != null) profile.Bio = dto.Bio;
             /*if (dto.DOB != null) profile.DOB = dto.DOB;*/
-            if (dto.ProfileImage != null) profile.ProfileImage = dto.ProfileImage;
+            if (dto.ProfileImage != null)
+            {
+                var result = await _cs.UploadPhotoAsync(dto.ProfileImage);
+
+                if (result == null || result.Error != null)
+                {
+                    throw new Exception("Profile image upload failed");
+                }
+
+                // delete old image if exists
+                if (!string.IsNullOrEmpty(profile.ProfileImagePublicId))
+                {
+                    await _cs.DeleteImageAsync(profile.ProfileImagePublicId);
+                }
+
+                // store both values
+                profile.ProfileImageUrl = result.SecureUrl.AbsoluteUri;
+                profile.ProfileImagePublicId = result.PublicId;
+            }
             if (dto.Username != null) profile.UserName = dto.Username;
 
             await _db.SaveChangesAsync();

@@ -1,6 +1,7 @@
 using DevLog.Api.Application.Handlers;
 using DevLog.Api.Application.Interfaces;
 using DevLog.Api.Application.Services;
+using DevLog.Api.Configurations;
 using DevLog.Api.Infrastructure.Data;
 using DevLog.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,6 +38,7 @@ class Program
         builder.Services.AddScoped<IReactionsServices, ReactionsServices>();
         builder.Services.AddScoped<ICommentServices, CommentServices>();
         builder.Services.AddScoped<IProfileServices, ProfileServices>();
+        builder.Services.AddScoped<ICloudinaryServices, CloudinaryServices>();
 
         builder.Services.AddAuthentication(options =>
         {
@@ -104,6 +106,9 @@ class Program
         }
     });
         });
+
+        builder.Services.Configure<CloudinarySettings>(
+            builder.Configuration.GetSection("Cloudinary"));
 
 
         // Global exception handling

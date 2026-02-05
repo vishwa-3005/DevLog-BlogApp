@@ -49,7 +49,7 @@ namespace DevLog.Api.Application.Services
                 UpdatedAt = comment.UpdatedAt,
                 AuthorId = comment.UserId,
                 AuthorName = comment.User.UserName,
-                AuthorProfile = up.ProfileImage
+                AuthorProfile = up.ProfileImageUrl
             };
 
             return commentDetail;
@@ -101,7 +101,7 @@ namespace DevLog.Api.Application.Services
                     UpdatedAt = x.c.UpdatedAt,
                     AuthorId = x.c.UserId,
                     AuthorName = x.c.User.UserName,
-                    AuthorProfile = x.up.ProfileImage
+                    AuthorProfile = x.up.ProfileImageUrl
                 }).ToListAsync();
                 
             return comments;
