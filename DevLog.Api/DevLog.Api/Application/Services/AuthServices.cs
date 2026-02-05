@@ -21,13 +21,13 @@ namespace DevLog.Api.Application.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
+        private readonly ICloudinaryServices _cs;
         private readonly IConfiguration _config;
-        public AuthServices(ApplicationDbContext db, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration config)
+        public AuthServices(ApplicationDbContext db, ICloudinaryServices cs, UserManager<AppUser> userManager, IConfiguration config)
         {
             _db = db;
             _userManager = userManager;
-            _signInManager = signInManager;
+            _cs = cs;
             _config = config;
         }
 
@@ -149,13 +149,19 @@ namespace DevLog.Api.Application.Services
 
             await _userManager.AddToRoleAsync(newUser, "User");
 
+
+            var res = await _cs.UploadPhotoAsync(dto.profile);
+
             var profile = new UserProfile
             {
                 UserName = dto.username,
                 Email = dto.email,
                 DOB = dto.Dob,
                 Bio = dto.Bio,
-                UserId = newUser.Id
+                UserId = newUser.Id,
+                ProfileImageUrl = res.SecureUrl.AbsoluteUri,
+                ProfileImagePublicId = res.PublicId
+
             };
 
             await _db.UsersProfiles.AddAsync(profile);

@@ -6,6 +6,7 @@ using DevLog.Api.Models;
 using DevLog.Api.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Slugify;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DevLog.Api.Application.Services
 {
@@ -13,25 +14,32 @@ namespace DevLog.Api.Application.Services
     public class PostServices : IPostServices
     {
         private readonly ApplicationDbContext _db;
+        private readonly ICloudinaryServices _cs;
 
-        public PostServices(ApplicationDbContext db)
+        public PostServices(ApplicationDbContext db, ICloudinaryServices cs)
         {
             _db = db;
+            _cs = cs;
         }
 
         // Create
         public async Task<int> CreateDraftAsync(CreatePostDto dto, string authorId) //post id
         {
+
+                var res = await _cs.UploadPhotoAsync(dto.Thumbnail);
+                if (res == null) throw new Exception("Failed to upload photo on cloudinary!");
             var newPost = new Post
             {
                 AuthorId = authorId,
                 Content = dto.Content,
                 Description = dto.Description,
-                Thumbnail = "default.png",
+                ThumbnailUrl = res.SecureUrl.AbsoluteUri,
+                ThumbnailPublicId = res.PublicId,
                 Title = dto.Title,
                 Slug = generateSlug(dto.Title),
                 Status = PostStatus.Draft
             };
+            
 
             await _db.Posts.AddAsync(newPost);
             await _db.SaveChangesAsync();
@@ -70,7 +78,7 @@ namespace DevLog.Api.Application.Services
                 Description = post.Description,
                 Content = post.Content,
                 AuthorName = post.Author.UserName,
-                Thumbnail = post.Thumbnail,
+                ThumbnailUrl = post.ThumbnailUrl,
                 LikeCount = post.Reactions.Count(),
                 CreatedAt = version.CreatedAt,
                 UpdatedAt = version.UpdateddAt
@@ -88,7 +96,7 @@ namespace DevLog.Api.Application.Services
                 new PostSummaryDto
                 {
                     PostId = p.PostId,
-                    Thumbnail = p.Thumbnail,
+                    Thumbnail = p.ThumbnailUrl,
                     Title = p.Title,
                     Slug = p.Slug,
                     Description = p.Description,
@@ -109,7 +117,7 @@ namespace DevLog.Api.Application.Services
                 new PostSummaryDto
                 {
                     PostId = p.PostId,
-                    Thumbnail = p.Thumbnail,
+                    Thumbnail = p.ThumbnailUrl,
                     Title = p.Title,
                     Slug = p.Slug,
                     Description = p.Description,
@@ -132,10 +140,25 @@ namespace DevLog.Api.Application.Services
             if (post.AuthorId != authorId)
                 throw new ForbiddenException("Not the post owner");
 
-            post.Title = dto.Title;
+            var res = await _cs.UploadPhotoAsync(dto.Thumbnail);
+            if (res == null || res.Error != null)
+            {
+                throw new Exception("Profile image upload failed");
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(post.ThumbnailPublicId))
+                {
+                    await _cs.DeleteImageAsync(post.ThumbnailPublicId);
+                }
+                post.ThumbnailPublicId = res.SecureUrl.AbsoluteUri;
+                post.ThumbnailPublicId = res.PublicId;
+            }
+
+            if(dto.Title != null) post.Title = dto.Title;
             post.Content = dto.Content;
             post.Description = dto.Description;
-            post.Thumbnail = dto.Thumbnail;
+            
 
             await _db.SaveChangesAsync();
 
