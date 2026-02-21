@@ -38,7 +38,7 @@ namespace DevLog.Api.Application.Services
                             AuthorName = p.Author.UserName,
                             CreatedAt = p.CreatedAt,
                             LikeCount = p.Reactions.Count(),
-                            Thumbnail = p.Thumbnail,
+                            Thumbnail = p.ThumbnailUrl,
                             Slug = p.Slug,
                         }
                     )
@@ -57,7 +57,7 @@ namespace DevLog.Api.Application.Services
                             AuthorName = p.Author.UserName,
                             CreatedAt = p.CreatedAt,
                             LikeCount = p.Reactions.Count(),
-                            Thumbnail = p.Thumbnail,
+                            Thumbnail = p.ThumbnailUrl,
                             Slug = p.Slug,
                         }
                     )

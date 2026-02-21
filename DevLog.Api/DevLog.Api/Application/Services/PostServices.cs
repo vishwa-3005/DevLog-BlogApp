@@ -151,7 +151,7 @@ namespace DevLog.Api.Application.Services
                 {
                     await _cs.DeleteImageAsync(post.ThumbnailPublicId);
                 }
-                post.ThumbnailPublicId = res.SecureUrl.AbsoluteUri;
+                post.ThumbnailUrl = res.SecureUrl.AbsoluteUri;
                 post.ThumbnailPublicId = res.PublicId;
             }
 
