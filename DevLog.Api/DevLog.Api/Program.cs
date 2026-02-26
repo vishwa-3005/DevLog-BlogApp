@@ -67,9 +67,10 @@ class Program
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
-                policy.AllowAnyOrigin()
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
+                policy.WithOrigins("http://localhost:5173") // exact frontend origin
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // required for cookies
             });
         });
 
