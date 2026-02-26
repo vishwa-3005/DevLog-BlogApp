@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { clearAccessToken } from "./services/tokenService.js";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AllPosts from "./pages/AllPosts.jsx";
 import CreatePost from "./pages/CreatePost.jsx";
@@ -12,6 +13,30 @@ import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SignUp from "./pages/SignUp.jsx";
 
 function App() {
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    console.log("App mounted");
+
+    const restoreSession = async () => {
+      console.log("Calling refresh");
+
+      try {
+        const res = await axiosInstance.post("/api/auth/refresh");
+        setAccessToken(res.data.accessToken);
+        console.log("Refresh success");
+      } catch (err) {
+        console.log("Refresh failed");
+        clearAccessToken();
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    restoreSession();
+  }, []);
+  if (!authChecked) return <div>Loading...</div>;
+
   return (
     <BrowserRouter>
       <Routes>
