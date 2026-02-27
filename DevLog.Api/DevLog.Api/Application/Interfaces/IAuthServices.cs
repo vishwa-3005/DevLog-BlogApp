@@ -11,7 +11,8 @@ namespace DevLog.Api.Application.Interfaces
         //logs out user
         public Task LogOutUserAsync(string token);
         //refresh
-        public Task<string> RefreshAsync(string token);
-        
+        public Task<(string accessToken, string refreshToken)> RefreshAsync(string token);
+
+
     }
 }

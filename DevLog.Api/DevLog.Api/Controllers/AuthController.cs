@@ -21,7 +21,7 @@ namespace DevLog.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register([FromForm]RegisterDto dto)
         {
             var userId = await _authServices.RegisterUserAsync(dto);
             return CreatedAtAction(nameof(Register), new { id = userId }, new { userId });
@@ -38,7 +38,7 @@ namespace DevLog.Api.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTime.UtcNow.AddDays(7)
                 }
                 );
@@ -61,8 +61,19 @@ namespace DevLog.Api.Controllers
             if (!Request.Cookies.TryGetValue("refreshToken", out var token))
                 return Unauthorized();
 
-            var accessToken = await _authServices.RefreshAsync(token);
-            return Ok(new { accessToken });
+            var tokens = await _authServices.RefreshAsync(token);
+            Response.Cookies.Append(
+           "refreshToken",
+           tokens.refreshToken,
+           new CookieOptions
+           {
+               HttpOnly = true,
+               Secure = true,
+               SameSite = SameSiteMode.None,
+               Expires = DateTime.UtcNow.AddDays(7)
+           }
+           );
+            return Ok(new { tokens.accessToken });
         }
     }
 }

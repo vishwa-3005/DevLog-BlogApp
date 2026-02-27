@@ -24,12 +24,31 @@ export const login = createAsyncThunk(
   },
 );
 
+export const signUp = createAsyncThunk(
+  "auth/signUp",
+  async (credentials, thunkAPI) => {
+    try {
+      const response = await axiosInstance.post(
+        "api/auth/register",
+        credentials,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data || "Login Failed");
+    }
+  },
+);
 export const refreshToken = createAsyncThunk(
   "auth/refresh",
   async (_, thunkAPI) => {
     try {
       console.log("refresh start");
-      const res = await axiosInstance.post("api/auth/refresh");
+      const res = await axiosInstance.post("/api/auth/refresh");
       console.log("refresh success", res.data);
       return res.data;
     } catch (error) {
@@ -68,6 +87,21 @@ const authSlice = createSlice({
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
         setAccessToken(action.payload.accessToken);
+      })
+      .addCase(refreshToken.rejected, (state, action) => {
+        state.accessToken = null;
+        setAccessToken(null);
+      })
+      .addCase(signUp.fulfilled, (state, action) => {
+        state.accessToken = action.payload.accessToken;
+        setAccessToken(action.payload.accessToken);
+      })
+      .addCase(signUp.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+      .addCase(signUp.pending, (state, action) => {
+        state.pending = true;
       });
   },
 });

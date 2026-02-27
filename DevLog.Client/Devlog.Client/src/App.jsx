@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { clearAccessToken } from "./services/tokenService.js";
+import { clearAccessToken, setAccessToken } from "./services/tokenService.js";
+import { refreshToken } from "./features/auth/authSlice.js";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AllPosts from "./pages/AllPosts.jsx";
 import CreatePost from "./pages/CreatePost.jsx";
@@ -11,29 +12,14 @@ import Login from "./pages/Login.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SignUp from "./pages/SignUp.jsx";
+import { useDispatch } from "react-redux";
 
 function App() {
   const [authChecked, setAuthChecked] = useState(false);
-
+  const dispatch = useDispatch();
   useEffect(() => {
     console.log("App mounted");
-
-    const restoreSession = async () => {
-      console.log("Calling refresh");
-
-      try {
-        const res = await axiosInstance.post("/api/auth/refresh");
-        setAccessToken(res.data.accessToken);
-        console.log("Refresh success");
-      } catch (err) {
-        console.log("Refresh failed");
-        clearAccessToken();
-      } finally {
-        setAuthChecked(true);
-      }
-    };
-
-    restoreSession();
+    dispatch(refreshToken()).finally(setAuthChecked(true));
   }, []);
   if (!authChecked) return <div>Loading...</div>;
 
