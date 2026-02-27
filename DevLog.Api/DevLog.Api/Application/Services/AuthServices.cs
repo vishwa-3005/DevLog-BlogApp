@@ -14,6 +14,7 @@ using System.Text;
 using BCrypt.Net;
 using Azure.Core;
 using Azure;
+using DevLog.Api.Migrations;
 
 namespace DevLog.Api.Application.Services
 {
@@ -31,7 +32,7 @@ namespace DevLog.Api.Application.Services
             _config = config;
         }
 
-        public async Task<string> RefreshAsync(string token)
+        public async Task<(string accessToken, string refreshToken)> RefreshAsync(string token)
         {
                 var tokens = await _db.RefreshTokens
                     .Include(r => r.User)
@@ -62,7 +63,7 @@ namespace DevLog.Api.Application.Services
 
             var accessToken = CreateAccessToken(stored.User);
 
-            return accessToken;
+            return (newRefresh, accessToken);
         }
 
         public async Task<(string accessToken, string refreshToken)> LoginUserAsync(LoginDto dto)
