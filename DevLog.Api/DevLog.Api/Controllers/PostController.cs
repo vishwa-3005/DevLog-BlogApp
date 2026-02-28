@@ -21,7 +21,7 @@ namespace DevLog.Api.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(CreatePostDto dto)
+        public async Task<IActionResult> Create([FromForm]CreatePostDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

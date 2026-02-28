@@ -3,22 +3,101 @@ import axiosInstance from "../../services/axiosInstance";
 import reducer from "../auth/authSlice";
 const initialState = {
   posts: [],
+  currentPost: null,
   loading: true,
   error: null,
 };
 
-export const fetchPosts = createAsyncThunk("api/posts", async (_, thunkAPI) => {
-  try {
-    const response = await axiosInstance.get("api/posts");
-    console.log("posts fetched");
-    return response.data;
-  } catch (error) {
-    console.log(error.message);
-    return thunkAPI.rejectWithValue(
-      error?.message || "Failed to fetch posts !",
-    );
-  }
-});
+//view all posts
+export const fetchPosts = createAsyncThunk(
+  "posts/getAllPosts",
+  async (_, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get("/api/posts");
+      console.log("posts fetched");
+      return response.data;
+    } catch (error) {
+      console.log(error.message);
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to fetch posts !",
+      );
+    }
+  },
+);
+
+//create post
+export const createPost = createAsyncThunk(
+  "posts/create",
+  async (formdata, thunkAPI) => {
+    try {
+      const response = await axiosInstance.post("/api/posts/create", formdata);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to create post",
+      );
+    }
+  },
+);
+//update publish
+export const publishPost = createAsyncThunk(
+  "posts/publish",
+  async (postId, thunkAPI) => {
+    try {
+      const response = await axiosInstance.patch(
+        `/api/posts/${postId}/publish`,
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to publish post!",
+      );
+    }
+  },
+);
+//post update
+export const updatePost = createAsyncThunk(
+  "posts/update",
+  async ({ postId, formdata }, thunkAPI) => {
+    try {
+      const response = await axiosInstance.put(
+        `/api/posts/${postId}`,
+        formdata,
+      );
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to publish post!",
+      );
+    }
+  },
+);
+//post delete
+export const archivePost = createAsyncThunk(
+  "posts/archive",
+  async (postId, thunkAPI) => {
+    try {
+      const response = await axiosInstance.delete(`/api/posts/${postId}`);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to Delete post!",
+      );
+    }
+  },
+);
+//post view
+export const getPostById = createAsyncThunk(
+  "posts/view",
+  async (postId, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get(`/api/posts/${postId}`);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error?.message || "Failed to View post!");
+    }
+  },
+);
 
 const postSlice = createSlice({
   name: "posts",
@@ -37,6 +116,32 @@ const postSlice = createSlice({
       .addCase(fetchPosts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(createPost.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        state.currentPost = action.payload;
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(createPost.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+      .addCase(getPostById.pending, (state, action) => {
+        state.pending = true;
+        state.error = null;
+      })
+      .addCase(getPostById.fulfilled, (state, action) => {
+        state.pending = false;
+        state.error = null;
+        state.currentPost = action.payload;
+      })
+      .addCase(getPostById.rejected, (state, action) => {
+        state.error = null;
+        state.loading = null;
       });
   },
 });
