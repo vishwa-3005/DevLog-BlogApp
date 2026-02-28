@@ -37,6 +37,11 @@ namespace DevLog.Api.Application.Services
                 };
 
                 var url = await _cloudinary.UploadAsync(uploadParams);
+                if (url == null || url.Error != null)
+                {
+                    throw new Exception("Profile image upload failed");
+                }
+
                 return url;
             }
         }
