@@ -131,7 +131,7 @@ namespace DevLog.Api.Application.Services
         }
 
         // Update
-        public async Task UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId)
+        public async Task<int> UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId)
         {
             var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
@@ -162,7 +162,8 @@ namespace DevLog.Api.Application.Services
 
             await _db.SaveChangesAsync();
 
-           // return post.PostId;
+
+            return post.PostId;
         }
         public async Task PublishAsync(int postId, string authorId)
         {

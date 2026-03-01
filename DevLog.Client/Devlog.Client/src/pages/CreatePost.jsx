@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import BlogEditor from "../components/BlogEditor";
 import { createPost, publishPost } from "../features/posts/postSlice";
-
+import { toast } from "react-toastify";
 function CreatePost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -41,12 +41,14 @@ function CreatePost() {
 
       if (publish) {
         await dispatch(publishPost(createdId)).unwrap();
+        toast.success("Post created successfully");
         navigate(`/posts/${createdId}`);
       } else {
         navigate(`/posts`);
       }
     } catch (error) {
       console.error("Create failed:", error);
+      toast.error(error?.message || "Something went wrong");
     }
   };
 

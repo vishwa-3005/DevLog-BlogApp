@@ -60,8 +60,8 @@ namespace DevLog.Api.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            await _postService.UpdateDraftAsync(id, dto, userId);
-            return Ok();
+            var postId = await _postService.UpdateDraftAsync(id, dto, userId);
+            return Ok(new { id = postId });
         }
 
         [HttpPatch("{id}/publish")]

@@ -14,7 +14,7 @@ namespace DevLog.Api.Application.Interfaces
         Task<List<PostSummaryDto>> GetByAuthorAsync(string authorId);
 
         // Update
-        Task UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId);
+        Task<int> UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId);
         Task PublishAsync(int postId, string authorId);
 
         // Delete 
