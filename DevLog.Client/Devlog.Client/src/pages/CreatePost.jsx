@@ -43,7 +43,7 @@ function CreatePost() {
         await dispatch(publishPost(createdId)).unwrap();
         navigate(`/posts/${createdId}`);
       } else {
-        navigate(`/posts/${createdId}/edit`);
+        navigate(`/posts`);
       }
     } catch (error) {
       console.error("Create failed:", error);

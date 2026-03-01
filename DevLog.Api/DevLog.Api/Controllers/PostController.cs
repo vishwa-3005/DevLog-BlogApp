@@ -27,7 +27,7 @@ namespace DevLog.Api.Controllers
 
             var postId = await _postService.CreateDraftAsync(dto, userId);
 
-            return CreatedAtAction(nameof(GetById), new { id = postId }, null);
+            return Ok(new { id = postId });
         }
 
         [HttpGet("{id}")]
@@ -71,7 +71,7 @@ namespace DevLog.Api.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             await _postService.PublishAsync(id, userId);
-            return Ok();
+            return Ok(new {postId = id});
         }
 
         [HttpDelete("{id}")]
