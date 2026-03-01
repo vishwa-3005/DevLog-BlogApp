@@ -142,17 +142,17 @@ const postSlice = createSlice({
         state.loading = false;
       })
       .addCase(getPostById.pending, (state, action) => {
-        state.pending = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(getPostById.fulfilled, (state, action) => {
-        state.pending = false;
+        state.loading = false;
         state.error = null;
         state.currentPost = action.payload;
       })
       .addCase(getPostById.rejected, (state, action) => {
         state.error = null;
-        state.loading = null;
+        state.loading = false;
       });
   },
 });

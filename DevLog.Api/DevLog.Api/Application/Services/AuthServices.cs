@@ -63,7 +63,7 @@ namespace DevLog.Api.Application.Services
 
             var accessToken = CreateAccessToken(stored.User);
 
-            return (newRefresh, accessToken);
+            return (accessToken, newRefresh);
         }
 
         public async Task<(string accessToken, string refreshToken)> LoginUserAsync(LoginDto dto)

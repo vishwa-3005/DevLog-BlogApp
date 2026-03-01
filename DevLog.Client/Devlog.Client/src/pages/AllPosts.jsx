@@ -44,7 +44,7 @@ function AllPosts() {
           {posts.map((post) => (
             <Link
               key={post.postId}
-              to={`/posts/${post.slug}`}
+              to={`/posts/${post.postId}`}
               className="group flex flex-col rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/70 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-emerald-500/40"
             >
               {/* Thumbnail */}

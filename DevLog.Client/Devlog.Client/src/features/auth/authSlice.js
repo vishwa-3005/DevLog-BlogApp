@@ -87,11 +87,16 @@ const authSlice = createSlice({
       })
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
+        state.loading = false;
         setAccessToken(action.payload.accessToken);
       })
       .addCase(refreshToken.rejected, (state, action) => {
         state.accessToken = null;
+        state.loading = false;
         setAccessToken(null);
+      })
+      .addCase(refreshToken.pending, (state, action) => {
+        state.loading = true;
       })
       .addCase(signUp.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
