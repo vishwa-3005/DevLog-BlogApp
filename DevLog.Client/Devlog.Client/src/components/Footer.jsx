@@ -1,7 +1,7 @@
 function Footer() {
   return (
     <footer className="border-t border-zinc-800 mt-20">
-      <div className="max-w-6xl mx-auto px-6 py-12 text-center">
+      <div className="max-w-5xl mx-auto px-4 py-12 text-center">
         <h3 className="text-lg font-semibold mb-4 bg-linear-to-r from-emerald-400 to-indigo-500 bg-clip-text text-transparent">
           DevLog
         </h3>

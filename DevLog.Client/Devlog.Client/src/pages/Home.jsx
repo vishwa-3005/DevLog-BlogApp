@@ -9,7 +9,7 @@ function Home() {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-size-[40px_40px]" />
 
       {/* Hero Section */}
-      <section className="relative py-32 px-6 text-center">
+      <section className="relative py-32 px-4 text-center">
         {/* Gradient Glow */}
         <div className="absolute inset-0 bg-linear-to-r from-emerald-500/10 via-transparent to-indigo-500/10 blur-3xl -z-10" />
 

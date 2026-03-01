@@ -30,7 +30,7 @@ export const createPost = createAsyncThunk(
   "posts/create",
   async (formdata, thunkAPI) => {
     try {
-      const response = await axiosInstance.post("/api/posts/create", formdata);
+      const response = await axiosInstance.post("/api/posts", formdata);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -98,7 +98,18 @@ export const getPostById = createAsyncThunk(
     }
   },
 );
-
+//upload image
+export const uploadImage = createAsyncThunk(
+  "image/upload",
+  async (formdata, thunkAPI) => {
+    try {
+      const response = await axiosInstance.post("/api/uploads", formdata);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error?.message || "upload failed!");
+    }
+  },
+);
 const postSlice = createSlice({
   name: "posts",
   initialState,
