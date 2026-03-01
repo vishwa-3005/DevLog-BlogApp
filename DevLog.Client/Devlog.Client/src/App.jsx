@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { clearAccessToken, setAccessToken } from "./services/tokenService.js";
 import { refreshToken } from "./features/auth/authSlice.js";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import AllPosts from "./pages/AllPosts.jsx";
 import CreatePost from "./pages/CreatePost.jsx";
 import EditPost from "./pages/EditPost.jsx";
@@ -46,6 +48,7 @@ function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={3000} />
     </BrowserRouter>
   );
 }
