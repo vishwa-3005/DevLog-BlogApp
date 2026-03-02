@@ -43,7 +43,7 @@ namespace DevLog.Api.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             await _commentServices.DeleteCommentAsync(commentId, userId);
-            return Ok();
+            return Ok(new {id = commentId});
         }
 
         [HttpPut("{commentId}")]
@@ -54,7 +54,7 @@ namespace DevLog.Api.Controllers
 
             await _commentServices.UpdateCommentAsync(dto, userId, commentId);
 
-            return NoContent();
+            return Ok(new {id = commentId, content = dto.Content});
         }
     }
 }

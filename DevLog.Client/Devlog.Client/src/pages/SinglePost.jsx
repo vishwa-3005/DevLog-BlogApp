@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getPostById } from "../features/posts/postSlice.js";
 import NotFound from "./NotFound.jsx";
 import { toggleLike } from "../features/posts/postSlice.js";
-
+import CommentSection from "../components/CommentSection.jsx";
 import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
@@ -102,59 +102,10 @@ function SinglePost() {
             ❤️ {currentPost.likeCount}
           </button>
 
-          <span className="text-gray-400 text-sm">
-            {currentPost.comments?.length || 0} Comments
-          </span>
+          <span className="text-gray-400 text-sm">Comments</span>
         </div>
 
-        {/* Comments Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-6">Comments</h2>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!commentText.trim()) return;
-              setCommentText("");
-            }}
-            className="mb-8"
-          >
-            <textarea
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write a comment..."
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              rows="4"
-            />
-            <button
-              type="submit"
-              className="mt-3 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg transition"
-            >
-              Post Comment
-            </button>
-          </form>
-
-          {currentPost.comments?.length > 0 ? (
-            <div className="space-y-6">
-              {currentPost.comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg"
-                >
-                  <div className="flex justify-between text-sm text-gray-400 mb-2">
-                    <span>{comment.authorName}</span>
-                    <span>
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-300">{comment.text}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No comments yet.</p>
-          )}
-        </div>
+        <CommentSection postId={currentPost.id} />
       </div>
     </div>
   );
