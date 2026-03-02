@@ -86,7 +86,7 @@ function Login() {
             {/* Error */}
             {error && (
               <div className="mt-6 text-sm text-red-400 bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
-                {error}
+                {error.message}
               </div>
             )}
 

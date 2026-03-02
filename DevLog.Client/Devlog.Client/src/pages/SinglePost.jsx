@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getPostById } from "../features/posts/postSlice.js";
 import NotFound from "./NotFound.jsx";
+import { toggleLike } from "../features/posts/postSlice.js";
 
 import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
@@ -12,9 +13,10 @@ function SinglePost() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { currentPost, loading, error } = useSelector((state) => state.posts);
-
   const [commentText, setCommentText] = useState("");
-
+  const reactionHandler = async (postId) => {
+    await dispatch(toggleLike(postId));
+  };
   useEffect(() => {
     dispatch(getPostById(id));
   }, [dispatch, id]);
@@ -91,8 +93,13 @@ function SinglePost() {
 
         {/* Engagement */}
         <div className="mt-12 border-t border-gray-800 pt-8 flex justify-between items-center">
-          <button className="flex items-center gap-2 px-5 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition">
-            ❤️ {currentPost.likeCount || 0}
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => reactionHandler(currentPost.id)}
+            className="flex items-center gap-2 px-5 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition"
+          >
+            ❤️ {currentPost.likeCount}
           </button>
 
           <span className="text-gray-400 text-sm">

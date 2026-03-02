@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/axiosInstance";
 import reducer from "../auth/authSlice";
+
 const initialState = {
   posts: [],
   currentPost: null,
@@ -110,6 +111,20 @@ export const uploadImage = createAsyncThunk(
     }
   },
 );
+
+//like post
+export const toggleLike = createAsyncThunk(
+  "posts/like",
+  async (postId, thunkAPI) => {
+    try {
+      const response = await axiosInstance.put(`/api/reactions/${postId}`);
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error?.message || "request failed");
+    }
+  },
+);
 const postSlice = createSlice({
   name: "posts",
   initialState,
@@ -151,7 +166,35 @@ const postSlice = createSlice({
         state.currentPost = action.payload;
       })
       .addCase(getPostById.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+      .addCase(updatePost.pending, (state, action) => {
+        state.loading = true;
         state.error = null;
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        state.error = null;
+        state.pending = false;
+      })
+      .addCase(updatePost.rejected, (state, action) => {
+        state.error = action.payload;
+        state.pending = false;
+      })
+      .addCase(toggleLike.fulfilled, (state, action) => {
+        const { id, likeCount } = action.payload;
+        const post = state.posts.find((p) => p.postId == id);
+        if (post) {
+          post.likeCount = likeCount;
+        }
+        if (state.currentPost && state.currentPost.id === id) {
+          state.currentPost.likeCount = likeCount;
+        }
+        state.error = null;
+        state.loading = false;
+      })
+      .addCase(toggleLike.rejected, (state, action) => {
+        state.error = action.payload;
         state.loading = false;
       });
   },
