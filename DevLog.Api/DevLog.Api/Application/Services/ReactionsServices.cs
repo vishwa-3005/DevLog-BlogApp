@@ -14,7 +14,7 @@ namespace DevLog.Api.Application.Services
             _db = db;
         }
 
-        public async Task ToggleLikePostAsync(int postId, string userId)
+        public async Task<int> ToggleLikePostAsync(int postId, string userId)
         {
             var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
             if(post == null)
@@ -32,11 +32,13 @@ namespace DevLog.Api.Application.Services
 
                 await _db.Reactions.AddAsync(like);
                 
-            } else
+            } else 
             {
                 _db.Reactions.Remove(likedPost);
             }
             await _db.SaveChangesAsync();
+
+            return post.Reactions.Count();
         }
     }
 }

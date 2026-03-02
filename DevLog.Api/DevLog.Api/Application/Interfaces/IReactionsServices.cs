@@ -2,6 +2,6 @@
 {
     public interface IReactionsServices
     {
-        public Task ToggleLikePostAsync(int postId, string userId);
+        public Task<int> ToggleLikePostAsync(int postId, string userId);
     }
 }

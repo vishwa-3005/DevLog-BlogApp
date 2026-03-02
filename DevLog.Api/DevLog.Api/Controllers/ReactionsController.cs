@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace DevLog.Api.Controllers
 {
-    [Route("api/posts/{postId}/likes")]
+    [Route("api/reactions/{postId}")]
     [ApiController]
     public class ReactionsController : ControllerBase
     {
@@ -22,9 +22,9 @@ namespace DevLog.Api.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            await _reactionsServices.ToggleLikePostAsync(postId, userId);
+            var res = await _reactionsServices.ToggleLikePostAsync(postId, userId);
 
-            return NoContent();
+            return Ok(new { id = postId, likeCount = res});
         }
     }
 }
