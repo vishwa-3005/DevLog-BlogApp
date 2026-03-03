@@ -18,35 +18,15 @@ namespace DevLog.Api.Application.Services
             _db = db;
             _cs = cs;
         }
-        public async Task<ProfileDto> GetProfileAsync(string CurrentUserId, int profileId)
+        public async Task<ProfileDto> GetProfileAsync(string CurrentUserId, string userId)
         {
-            var profile = await _db.UsersProfiles.Include(u => u.User).FirstOrDefaultAsync(up => up.Id == profileId);
+            var profile = await _db.UsersProfiles.Include(u => u.User).FirstOrDefaultAsync(up => up.UserId == userId);
             if (profile == null)
                 throw new NotFoundException("Profile Not Found");
 
             List<PostSummaryDto> userPosts;
-            if (profile.UserId != CurrentUserId)
-            {
-                userPosts = _db.Posts
-                    .Where(p => (p.AuthorId == profile.UserId && p.Status == PostStatus.Published))
-                    .Select(p =>
-                        new PostSummaryDto
-                        {
-                            PostId = p.PostId,
-                            Title = p.Title,
-                            Description = p.Description,
-                            AuthorName = p.Author.UserName,
-                            CreatedAt = p.CreatedAt,
-                            LikeCount = p.Reactions.Count(),
-                            Thumbnail = p.ThumbnailUrl,
-                            Slug = p.Slug,
-                        }
-                    )
-                    .ToList();
-            }
-            else
-            {
-                userPosts = _db.Posts
+           
+                var published = _db.Posts
                     .Where(p => (p.AuthorId == profile.UserId))
                     .Select(p =>
                         new PostSummaryDto
@@ -62,24 +42,59 @@ namespace DevLog.Api.Application.Services
                         }
                     )
                     .ToList();
-            }
-            var userProfile = new ProfileDto
-            {
-                ProfileId = profile.Id,
-                Bio = profile.Bio,
-                Email = profile.Email,
-                Username = profile.UserName,
-                DOB = profile.DOB,
-                ProfileImage = profile.ProfileImageUrl,
-                Posts = userPosts,
-            };
 
-            return userProfile;
+            
+            if(CurrentUserId != profile.UserId)
+            {
+                var userProfile = new ProfileDto
+                {
+                    ProfileId = profile.Id,
+                    Bio = profile.Bio,
+                    Email = profile.Email,
+                    Username = profile.UserName,
+                    DOB = profile.DOB,
+                    ProfileImage = profile.ProfileImageUrl,
+                    PublishedPosts = published,
+                    DraftPosts = []
+                };
+                return userProfile;
+            }
+            else
+            {
+                var drafts = _db.Posts
+                    .Where(p => p.Status == PostStatus.Draft)
+                    .Select(p =>
+                        new PostSummaryDto
+                        {
+                            PostId = p.PostId,
+                            Title = p.Title,
+                            Description = p.Description,
+                            AuthorName = p.Author.UserName,
+                            CreatedAt = p.CreatedAt,
+                            LikeCount = p.Reactions.Count(),
+                            Thumbnail = p.ThumbnailUrl,
+                            Slug = p.Slug,
+                        }
+                    ).ToList();
+
+                var userProfile = new ProfileDto
+                {
+                    ProfileId = profile.Id,
+                    Bio = profile.Bio,
+                    Email = profile.Email,
+                    Username = profile.UserName,
+                    DOB = profile.DOB,
+                    ProfileImage = profile.ProfileImageUrl,
+                    PublishedPosts = published,
+                    DraftPosts = drafts
+                };
+                return userProfile;
+            } 
         }
 
-        public async Task UpdateProfileAsync(UpdateProfileDto dto, string CurrentUserId, int profileId)
+        public async Task UpdateProfileAsync(UpdateProfileDto dto, string CurrentUserId, string userId)
         {
-            var profile = await _db.UsersProfiles.FindAsync(profileId);
+            var profile = await _db.UsersProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
             if (profile == null)
                 throw new NotFoundException("Profile Not Found");
 

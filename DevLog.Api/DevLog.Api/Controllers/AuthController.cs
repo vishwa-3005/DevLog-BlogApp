@@ -30,10 +30,10 @@ namespace DevLog.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var tokens = await _authServices.LoginUserAsync(dto);
+            var response = await _authServices.LoginUserAsync(dto);
             Response.Cookies.Append(
                 "refreshToken",
-                tokens.refreshToken,
+                response.refreshToken,
                 new CookieOptions
                 {
                     HttpOnly = true,
@@ -42,7 +42,7 @@ namespace DevLog.Api.Controllers
                     Expires = DateTime.UtcNow.AddDays(7)
                 }
                 );
-            return Ok(new { tokens.accessToken });
+            return Ok(response);
         }
 
         [HttpPost("logout")]
@@ -61,10 +61,10 @@ namespace DevLog.Api.Controllers
             if (!Request.Cookies.TryGetValue("refreshToken", out var token))
                 return Unauthorized();
 
-            var tokens = await _authServices.RefreshAsync(token);
+            var response = await _authServices.RefreshAsync(token);
             Response.Cookies.Append(
            "refreshToken",
-           tokens.refreshToken,
+           response.refreshToken,
            new CookieOptions
            {
                HttpOnly = true,
@@ -73,7 +73,7 @@ namespace DevLog.Api.Controllers
                Expires = DateTime.UtcNow.AddDays(7)
            }
            );
-            return Ok(new { tokens.accessToken });
+            return Ok(response);
         }
     }
 }

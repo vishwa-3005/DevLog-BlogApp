@@ -32,7 +32,7 @@ namespace DevLog.Api.Application.Services
             _config = config;
         }
 
-        public async Task<(string accessToken, string refreshToken)> RefreshAsync(string token)
+        public async Task<AuthResponseDto> RefreshAsync(string token)
         {
                 var tokens = await _db.RefreshTokens
                     .Include(r => r.User)
@@ -63,10 +63,26 @@ namespace DevLog.Api.Application.Services
 
             var accessToken = CreateAccessToken(stored.User);
 
-            return (accessToken, newRefresh);
+            var userData = await _db.UsersProfiles
+       .Where(p => p.UserId == stored.UserId)
+       .Select(p => new
+       {
+           id = p.UserId,
+           username = p.UserName,
+           profileImage = p.ProfileImageUrl
+       })
+       .FirstOrDefaultAsync();
+
+            return new AuthResponseDto
+            {
+                accessToken = accessToken,
+                refreshToken = newRefresh, // only if you need to send it back
+                user = userData
+            };
+
         }
 
-        public async Task<(string accessToken, string refreshToken)> LoginUserAsync(LoginDto dto)
+        public async Task<AuthResponseDto> LoginUserAsync(LoginDto dto)
         {
             //check if user exists
             var user = await _userManager.FindByEmailAsync(dto.email);
@@ -101,8 +117,20 @@ namespace DevLog.Api.Application.Services
             _db.RefreshTokens.Add(refreshEntity);
             await _db.SaveChangesAsync();
 
-            //return access and refresh token
-            return (accessToken, refreshToken);
+            var userData = await _db.UsersProfiles.Where(u => u.UserId == user.Id).Select(p => new
+            {
+                id = p.UserId,
+                name = p.UserName,
+                profileImage = p.ProfileImageUrl
+            }).FirstOrDefaultAsync();
+
+            //return access and refresh token, userData
+            return new AuthResponseDto
+            {
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                user = userData
+            };
         }
 
         public async Task LogOutUserAsync(string token)

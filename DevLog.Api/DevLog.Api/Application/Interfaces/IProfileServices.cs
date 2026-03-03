@@ -5,8 +5,8 @@ namespace DevLog.Api.Application.Interfaces
     public interface IProfileServices
     {
         //get profile
-        public Task<ProfileDto> GetProfileAsync(string CurrentUserId, int profileId);
+        public Task<ProfileDto> GetProfileAsync(string CurrentUserId, string profileId);
         //update profile
-        public Task UpdateProfileAsync(UpdateProfileDto dto, string CurrentUserId, int profileId);
+        public Task UpdateProfileAsync(UpdateProfileDto dto, string CurrentUserId, string profileId);
     }
 }

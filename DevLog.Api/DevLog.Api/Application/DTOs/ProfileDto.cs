@@ -8,6 +8,7 @@
         public string Bio { get; set; }
         public string ProfileImage { get; set; } = "";
         public DateOnly DOB { get; set; }
-        public List<PostSummaryDto> Posts { get; set; }
+        public List<PostSummaryDto> PublishedPosts { get; set; }
+        public List<PostSummaryDto> DraftPosts { get; set; }
     }
 }
