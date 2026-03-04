@@ -56,7 +56,7 @@ namespace DevLog.Api.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateDraft(int id, UpdatePostDto dto)
+        public async Task<IActionResult> UpdateDraft(int id, [FromForm]UpdatePostDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

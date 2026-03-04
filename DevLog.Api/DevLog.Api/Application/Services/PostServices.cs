@@ -74,6 +74,7 @@ namespace DevLog.Api.Application.Services
             var postDetail = new PostDetailDto
             {
                 Id = post.PostId,
+                AuthorId = post.AuthorId,
                 Title = post.Title,
                 Description = post.Description,
                 Content = post.Content,

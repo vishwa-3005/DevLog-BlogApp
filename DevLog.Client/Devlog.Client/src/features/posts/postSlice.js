@@ -60,12 +60,14 @@ export const publishPost = createAsyncThunk(
 //post update
 export const updatePost = createAsyncThunk(
   "posts/update",
-  async ({ postId, formdata }, thunkAPI) => {
+  async ({ id, formData }, thunkAPI) => {
     try {
-      const response = await axiosInstance.put(
-        `/api/posts/${postId}`,
-        formdata,
-      );
+      const response = await axiosInstance.put(`/api/posts/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error?.message || "Failed to publish post!",
@@ -175,11 +177,11 @@ const postSlice = createSlice({
       })
       .addCase(updatePost.fulfilled, (state, action) => {
         state.error = null;
-        state.pending = false;
+        state.loading = false;
       })
       .addCase(updatePost.rejected, (state, action) => {
         state.error = action.payload;
-        state.pending = false;
+        state.loading = false;
       })
       .addCase(toggleLike.fulfilled, (state, action) => {
         const { id, likeCount } = action.payload;

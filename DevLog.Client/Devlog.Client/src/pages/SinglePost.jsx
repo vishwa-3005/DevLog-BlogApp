@@ -6,12 +6,15 @@ import NotFound from "./NotFound.jsx";
 import { toggleLike } from "../features/posts/postSlice.js";
 import CommentSection from "../components/CommentSection.jsx";
 import Prism from "prismjs";
+import { useNavigate } from "react-router-dom";
 import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
 
 function SinglePost() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const { currentPost, loading, error } = useSelector((state) => state.posts);
   const [commentText, setCommentText] = useState("");
   const reactionHandler = async (postId) => {
@@ -101,6 +104,23 @@ function SinglePost() {
           >
             ❤️ {currentPost.likeCount}
           </button>
+          {user && currentPost.authorId === user.id && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(`/posts/${currentPost.id}/edit`)}
+                className="px-4 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-500"
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={() => dispatch(archivePost(currentPost.id))}
+                className="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          )}
 
           <span className="text-gray-400 text-sm">Comments</span>
         </div>
