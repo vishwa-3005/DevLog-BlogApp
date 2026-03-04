@@ -17,23 +17,23 @@ namespace DevLog.Api.Controllers
             _profileService = profileService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetProfile(int profileId)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetProfile(string userId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var profile = await _profileService.GetProfileAsync(currentUserId, profileId);
+            var profile = await _profileService.GetProfileAsync(currentUserId, userId);
 
             return Ok(profile);
         } //api/get/profiles/{id}
 
-        [HttpPut]
+        [HttpPut("{userId}")]
         [Authorize]
-        public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto, int profileId)
+        public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto, string userId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            await _profileService.UpdateProfileAsync(dto, currentUserId, profileId);
+            await _profileService.UpdateProfileAsync(dto, currentUserId, userId);
 
             return Ok();
         } // api/put/profiles/{id}

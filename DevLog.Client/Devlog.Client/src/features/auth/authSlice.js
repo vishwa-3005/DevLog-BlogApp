@@ -8,6 +8,7 @@ import {
 
 const initialState = {
   accessToken: null,
+  user: {},
   error: null,
   loading: false,
 };
@@ -75,8 +76,10 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
+        state.user = action.payload.user;
         state.loading = false;
         console.log("Setting token:", action.payload.accessToken);
+        console.log(action.payload.user);
         setAccessToken(action.payload.accessToken);
       })
       .addCase(login.rejected, (state, action) => {
@@ -85,18 +88,27 @@ const authSlice = createSlice({
         clearAccessToken();
         state.error = action.payload;
       })
+      .addCase(refreshToken.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;
+        state.user = action.payload.user; //  restore identity
         state.loading = false;
+        state.error = null;
+
         setAccessToken(action.payload.accessToken);
       })
-      .addCase(refreshToken.rejected, (state, action) => {
+
+      .addCase(refreshToken.rejected, (state) => {
         state.accessToken = null;
+        state.user = {}; // clear user
         state.loading = false;
-        setAccessToken(null);
-      })
-      .addCase(refreshToken.pending, (state, action) => {
-        state.loading = true;
+        state.error = null;
+
+        clearAccessToken(); // better than setAccessToken(null)
       })
       .addCase(signUp.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken;

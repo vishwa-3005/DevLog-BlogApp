@@ -14,16 +14,24 @@ import Login from "./pages/Login.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SignUp from "./pages/SignUp.jsx";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import Profile from "./pages/Profile.jsx";
 
 function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const dispatch = useDispatch();
+  //const { loading } = useSelector((state) => state.auth);
+
   useEffect(() => {
     console.log("App mounted");
     dispatch(refreshToken()).finally(setAuthChecked(true));
   }, []);
-  if (!authChecked) return <div>Loading...</div>;
+  if (!authChecked)
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
 
   return (
     <BrowserRouter>
@@ -43,6 +51,7 @@ function App() {
             <Route path="/posts/create" element={<CreatePost />} />
             <Route path="/posts/:id" element={<SinglePost />} />
             <Route path="/posts/:id/edit" element={<EditPost />} />
+            <Route path="/profile/:id" element={<Profile />} />
           </Route>
         </Route>
 
