@@ -20,7 +20,19 @@ export const getProfile = createAsyncThunk(
 );
 export const editProfile = createAsyncThunk(
   "profile/edit",
-  async ({ userId, profile }, thunkAPI) => {},
+  async ({ id, profileData }, thunkAPI) => {
+    try {
+      const response = await axiosInstance.put(
+        `/api/profiles/${id}`,
+        profileData,
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "something went wrong!",
+      );
+    }
+  },
 );
 
 const profileSlice = createSlice({
@@ -38,6 +50,17 @@ const profileSlice = createSlice({
         state.loading = false;
       })
       .addCase(getProfile.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      })
+      .addCase(editProfile.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(editProfile.fulfilled, (state, action) => {
+        state.error = null;
+        state.loading = false;
+      })
+      .addCase(editProfile.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
       });

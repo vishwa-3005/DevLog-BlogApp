@@ -50,6 +50,7 @@ namespace DevLog.Api.Application.Services
                 {
                     ProfileId = profile.Id,
                     Bio = profile.Bio,
+                    UserId = profile.User.Id,
                     Email = profile.Email,
                     Username = profile.UserName,
                     DOB = profile.DOB,
@@ -81,6 +82,7 @@ namespace DevLog.Api.Application.Services
                 {
                     ProfileId = profile.Id,
                     Bio = profile.Bio,
+                    UserId = userId,
                     Email = profile.Email,
                     Username = profile.UserName,
                     DOB = profile.DOB,

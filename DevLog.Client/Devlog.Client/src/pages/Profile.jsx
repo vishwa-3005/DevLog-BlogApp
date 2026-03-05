@@ -11,23 +11,27 @@ function Profile() {
 
   const { id } = useParams();
   const dispatch = useDispatch();
+
   const { loading, error, profile } = useSelector((state) => state.profile);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (id) {
-      dispatch(getProfile(id));
-    }
+    if (id) dispatch(getProfile(id));
   }, [dispatch, id]);
 
+  /* -------- LOADING -------- */
   if (loading) {
     return (
-      <div className="text-zinc-400 animate-pulse">Loading profile...</div>
+      <div className="flex justify-center items-center h-[60vh] text-zinc-400 animate-pulse">
+        Loading profile...
+      </div>
     );
   }
 
+  /* -------- ERROR -------- */
   if (error) {
     return (
-      <div className="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
+      <div className="max-w-xl mx-auto mt-10 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
         {error}
       </div>
     );
@@ -35,6 +39,11 @@ function Profile() {
 
   if (!profile) return null;
 
+  /* -------- OWNER CHECK -------- */
+  const isOwner = user?.id === profile?.userId;
+  console.log(isOwner);
+
+  /* -------- POSTS FILTER -------- */
   const posts =
     activeTab === "published"
       ? profile.publishedPosts || []
@@ -42,12 +51,14 @@ function Profile() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 text-white">
-      <ProfileHeader profile={profile} />
+      <ProfileHeader profile={profile} isOwner={isOwner} />
+
       <ProfileTabs
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         profile={profile}
       />
+
       <PostGrid posts={posts} />
     </div>
   );
