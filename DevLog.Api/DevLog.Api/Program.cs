@@ -39,6 +39,7 @@ class Program
         builder.Services.AddScoped<ICommentServices, CommentServices>();
         builder.Services.AddScoped<IProfileServices, ProfileServices>();
         builder.Services.AddScoped<ICloudinaryServices, CloudinaryServices>();
+        builder.Services.AddHttpClient<IAIServices, AIServices>();
 
         builder.Services.AddAuthentication(options =>
         {
