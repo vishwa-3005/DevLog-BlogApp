@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import BlogEditor from "./BlogEditor.jsx";
 
-function PostForm({ initialData, onSubmit, loading }) {
+function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
   const {
     register,
     handleSubmit,
@@ -30,10 +30,7 @@ function PostForm({ initialData, onSubmit, loading }) {
   }, [initialData, reset]);
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-    >
+    <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Editor */}
       <div className="lg:col-span-2 bg-zinc-900 rounded-xl p-4 border border-zinc-800">
         <label className="block mb-3 font-medium">Content</label>
@@ -82,18 +79,29 @@ function PostForm({ initialData, onSubmit, loading }) {
         {/* Thumbnail */}
         <div>
           <label className="block mb-2 font-medium">Thumbnail</label>
-
           <input type="file" {...register("thumbnail")} />
         </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full px-4 py-2 rounded-lg bg-indigo-500"
-        >
-          Save
-        </button>
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleSubmit(onSubmitDraft)}
+            className="flex-1 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600"
+          >
+            Save Draft
+          </button>
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleSubmit(onSubmitPublish)}
+            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
+          >
+            Publish
+          </button>
+        </div>
       </div>
     </form>
   );

@@ -81,7 +81,7 @@ namespace DevLog.Api.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             await _postService.ArchiveAsync(id, userId);
-            return Ok();
+            return Ok(new { postId = id });
         }
     }
 

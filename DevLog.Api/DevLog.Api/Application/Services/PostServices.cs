@@ -82,6 +82,7 @@ namespace DevLog.Api.Application.Services
                 ThumbnailUrl = post.ThumbnailUrl,
                 LikeCount = post.Reactions.Count(),
                 CreatedAt = version.CreatedAt,
+                Status = post.Status.ToString(),
                 UpdatedAt = version.UpdateddAt
             };
 

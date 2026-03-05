@@ -198,6 +198,25 @@ const postSlice = createSlice({
       .addCase(toggleLike.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
+      })
+      .addCase(archivePost.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(archivePost.fulfilled, (state, action) => {
+        const postId = action.payload;
+
+        state.posts = state.posts.filter((p) => p.postId !== postId);
+
+        if (state.currentPost && state.currentPost.id === postId) {
+          state.currentPost = null;
+        }
+
+        state.loading = false;
+      })
+      .addCase(archivePost.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

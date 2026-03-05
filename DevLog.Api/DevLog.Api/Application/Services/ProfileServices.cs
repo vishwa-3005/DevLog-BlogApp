@@ -27,7 +27,7 @@ namespace DevLog.Api.Application.Services
             List<PostSummaryDto> userPosts;
            
                 var published = _db.Posts
-                    .Where(p => (p.AuthorId == profile.UserId))
+                    .Where(p => (p.AuthorId == profile.UserId) && p.Status == PostStatus.Published)
                     .Select(p =>
                         new PostSummaryDto
                         {
@@ -62,7 +62,7 @@ namespace DevLog.Api.Application.Services
             else
             {
                 var drafts = _db.Posts
-                    .Where(p => p.Status == PostStatus.Draft)
+                    .Where(p => (p.AuthorId == profile.UserId) && p.Status == PostStatus.Draft)
                     .Select(p =>
                         new PostSummaryDto
                         {

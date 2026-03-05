@@ -18,6 +18,6 @@
     public DateTime? UpdatedAt { get; set; }
 
     public int LikeCount { get; set; }
-
+    public string Status { get; set; }
     public bool IsLikedByCurrentUser { get; set; }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { getPostById } from "../features/posts/postSlice.js";
+import { archivePost, getPostById } from "../features/posts/postSlice.js";
 import NotFound from "./NotFound.jsx";
 import { toggleLike } from "../features/posts/postSlice.js";
 import CommentSection from "../components/CommentSection.jsx";
@@ -19,6 +19,9 @@ function SinglePost() {
   const [commentText, setCommentText] = useState("");
   const reactionHandler = async (postId) => {
     await dispatch(toggleLike(postId));
+  };
+  const deleteHandler = async () => {
+    await dispatch(archivePost(id));
   };
   useEffect(() => {
     dispatch(getPostById(id));
@@ -45,7 +48,7 @@ function SinglePost() {
     );
 
   if (!currentPost) return <NotFound />;
-
+  const isDraft = currentPost.status === "Draft";
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#0b1220] text-gray-200">
       <div className="max-w-4xl mx-auto px-6 py-16">
@@ -114,7 +117,7 @@ function SinglePost() {
               </button>
 
               <button
-                onClick={() => dispatch(archivePost(currentPost.id))}
+                onClick={deleteHandler}
                 className="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-500"
               >
                 Delete

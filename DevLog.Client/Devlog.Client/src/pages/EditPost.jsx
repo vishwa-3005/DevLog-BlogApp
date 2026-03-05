@@ -1,8 +1,13 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getPostById, updatePost } from "../features/posts/postSlice.js";
+import {
+  getPostById,
+  updatePost,
+  publishPost,
+} from "../features/posts/postSlice.js";
 import PostForm from "../components/PostForm.jsx";
+import { toast } from "react-toastify";
 
 function EditPost() {
   const { id } = useParams();
@@ -15,7 +20,7 @@ function EditPost() {
     dispatch(getPostById(id));
   }, [dispatch, id]);
 
-  const handleSubmit = async (data) => {
+  const buildFormData = (data) => {
     const formData = new FormData();
 
     formData.append("Title", data.title);
@@ -26,9 +31,30 @@ function EditPost() {
       formData.append("Thumbnail", data.thumbnail[0]);
     }
 
-    const res = await dispatch(updatePost({ id, formData })).unwrap();
+    return formData;
+  };
 
-    navigate(`/posts/${res.id}`);
+  const handleDraft = async (data) => {
+    try {
+      const formData = buildFormData(data);
+      await dispatch(updatePost({ id, formData })).unwrap();
+      toast.success("Draft saved successfully");
+      navigate(`/posts`);
+    } catch (err) {
+      toast.error("Failed to save draft");
+    }
+  };
+
+  const handlePublish = async (data) => {
+    try {
+      const formData = buildFormData(data);
+      const res = await dispatch(updatePost({ id, formData })).unwrap();
+      await dispatch(publishPost(id));
+      toast.success("Post published successfully");
+      navigate(`/posts/${res.id}`);
+    } catch (err) {
+      toast.error("Failed to publish post");
+    }
   };
 
   return (
@@ -37,7 +63,8 @@ function EditPost() {
 
       <PostForm
         initialData={currentPost}
-        onSubmit={handleSubmit}
+        onSubmitDraft={handleDraft}
+        onSubmitPublish={handlePublish}
         loading={loading}
       />
     </div>
