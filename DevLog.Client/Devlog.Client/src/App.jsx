@@ -16,6 +16,7 @@ import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SignUp from "./pages/SignUp.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import Profile from "./pages/Profile.jsx";
+import ProfileSettings from "./pages/ProfileSettings.jsx";
 
 function App() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -52,6 +53,7 @@ function App() {
             <Route path="/posts/:id" element={<SinglePost />} />
             <Route path="/posts/:id/edit" element={<EditPost />} />
             <Route path="/profile/:id" element={<Profile />} />
+            <Route path="/profile/settings/:id" element={<ProfileSettings />} />
           </Route>
         </Route>
 
