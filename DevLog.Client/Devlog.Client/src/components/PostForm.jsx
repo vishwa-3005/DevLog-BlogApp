@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useForm, Controller } from "react-hook-form";
 import BlogEditor from "./BlogEditor.jsx";
+import { generateThumbnail } from "../features/ai/aiSlice.js";
 
 function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
   const {
@@ -8,6 +10,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -18,17 +21,43 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
     },
   });
 
+  const dispatch = useDispatch();
+  const { thumbnailUrl, requesting: aiLoading } = useSelector(
+    (state) => state.ai,
+  );
+
+  // reset form when editing
   useEffect(() => {
     if (initialData) {
       reset({
         title: initialData.title || "",
         description: initialData.description || "",
         content: initialData.content || "",
-        thumbnail: null,
+        thumbnail: thumbnailUrl,
       });
     }
-  }, [initialData, reset]);
+  }, [initialData, reset, thumbnailUrl, dispatch]);
 
+  // generate thumbnail
+  const handleGenerate = () => {
+    const title = watch("title");
+
+    if (!title) return;
+
+    dispatch(generateThumbnail(title));
+  };
+  const thumbnailFile = watch("thumbnail");
+
+  // priority:
+  // 1 → uploaded file
+  // 2 → AI image
+  let previewUrl = null;
+  if (thumbnailUrl) previewUrl = thumbnailUrl;
+  if (thumbnailFile?.[0]) {
+    previewUrl = URL.createObjectURL(thumbnailFile[0]);
+  } else if (thumbnailUrl) {
+    previewUrl = thumbnailUrl;
+  }
   return (
     <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Editor */}
@@ -79,9 +108,50 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
         {/* Thumbnail */}
         <div>
           <label className="block mb-2 font-medium">Thumbnail</label>
-          <input type="file" {...register("thumbnail")} />
-        </div>
 
+          {/* Hidden input */}
+          <input
+            type="file"
+            id="thumbnailUpload"
+            accept="image/*"
+            {...register("thumbnail")}
+            className="hidden"
+          />
+
+          {/* Custom button */}
+          <label
+            htmlFor="thumbnailUpload"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 cursor-pointer transition"
+          >
+            📁 Choose Thumbnail
+          </label>
+          {/* Generate Button */}
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={!watch("title") || aiLoading}
+            className="mt-3 w-full px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700"
+          >
+            {aiLoading ? "Generating..." : "Generate with AI"}
+          </button>
+          {/* Selected file name */}
+          {watch("thumbnail")?.[0]?.name && (
+            <p className="mt-2 text-sm text-zinc-400">
+              Selected: {watch("thumbnail")[0].name}
+            </p>
+          )}
+        </div>
+        {previewUrl && (
+          <div className="mt-4">
+            <p className="text-sm text-zinc-400 mb-2">Preview</p>
+
+            <img
+              src={previewUrl}
+              alt="Thumbnail preview"
+              className="w-full rounded-lg border border-zinc-700 object-cover max-h-56"
+            />
+          </div>
+        )}
         {/* Buttons */}
         <div className="flex gap-3">
           <button

@@ -25,37 +25,69 @@ namespace DevLog.Api.Application.Services
         // Create
         public async Task<int> CreateDraftAsync(CreatePostDto dto, string authorId) //post id
         {
-
+                if(dto.Thumbnail != null)
+            {
                 var res = await _cs.UploadPhotoAsync(dto.Thumbnail);
                 if (res == null) throw new Exception("Failed to upload photo on cloudinary!");
-            var newPost = new Post
+                var newPost = new Post
+                {
+                    AuthorId = authorId,
+                    Content = dto.Content,
+                    Description = dto.Description,
+                    ThumbnailUrl = res.SecureUrl.AbsoluteUri,
+                    ThumbnailPublicId = res.PublicId,
+                    Title = dto.Title,
+                    Slug = generateSlug(dto.Title),
+                    CreatedAt = DateTime.UtcNow,
+                    Status = PostStatus.Draft
+                };
+
+
+                await _db.Posts.AddAsync(newPost);
+                await _db.SaveChangesAsync();
+
+                var version = new PostVersion
+                {
+                    PostId = newPost.PostId,
+                    CreatedAt = DateTime.Now,
+                    UpdateddAt = DateTime.Now
+                };
+
+                await _db.PostVersions.AddAsync(version);
+                return newPost.PostId;
+            }
+                else
             {
-                AuthorId = authorId,
-                Content = dto.Content,
-                Description = dto.Description,
-                ThumbnailUrl = res.SecureUrl.AbsoluteUri,
-                ThumbnailPublicId = res.PublicId,
-                Title = dto.Title,
-                Slug = generateSlug(dto.Title),
-                Status = PostStatus.Draft
-            };
+                var newPost = new Post
+                {
+                    AuthorId = authorId,
+                    Content = dto.Content,
+                    Description = dto.Description,
+                    ThumbnailUrl = dto.ThumbnailUrl,
+                    ThumbnailPublicId = dto.ThumbnailUrl,
+                    Title = dto.Title,
+                    Slug = generateSlug(dto.Title),
+                    CreatedAt = DateTime.UtcNow,
+                    Status = PostStatus.Draft
+
+                };
+
+
+                await _db.Posts.AddAsync(newPost);
+                await _db.SaveChangesAsync();
+
+                var version = new PostVersion
+                {
+                    PostId = newPost.PostId,
+                    CreatedAt = DateTime.Now,
+                    UpdateddAt = DateTime.Now
+                };
+
+                await _db.PostVersions.AddAsync(version);
+                await _db.SaveChangesAsync();
+                return newPost.PostId;
+            }
             
-
-            await _db.Posts.AddAsync(newPost);
-            await _db.SaveChangesAsync();
-
-            var version = new PostVersion
-            {
-                PostId = newPost.PostId,
-                CreatedAt = DateTime.Now,
-                UpdateddAt = DateTime.Now
-            };
-
-            await _db.PostVersions.AddAsync(version);
-
-            await _db.SaveChangesAsync();
-
-            return newPost.PostId;
         }
 
         // Read

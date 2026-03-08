@@ -14,12 +14,16 @@ function EditPost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // ✅ FIXED
+  const { thumbnailUrl } = useSelector((state) => state.ai);
+
   const { currentPost, loading } = useSelector((state) => state.posts);
 
   useEffect(() => {
     dispatch(getPostById(id));
   }, [dispatch, id]);
 
+  // ✅ FIXED
   const buildFormData = (data) => {
     const formData = new FormData();
 
@@ -27,8 +31,14 @@ function EditPost() {
     formData.append("Content", data.content);
     formData.append("Description", data.description);
 
+    // manual upload
     if (data.thumbnail?.[0]) {
       formData.append("Thumbnail", data.thumbnail[0]);
+    }
+
+    // AI thumbnail
+    if (thumbnailUrl) {
+      formData.append("ThumbnailUrl", thumbnailUrl);
     }
 
     return formData;
@@ -37,7 +47,9 @@ function EditPost() {
   const handleDraft = async (data) => {
     try {
       const formData = buildFormData(data);
+
       await dispatch(updatePost({ id, formData })).unwrap();
+
       toast.success("Draft saved successfully");
       navigate(`/posts`);
     } catch (err) {
@@ -48,8 +60,11 @@ function EditPost() {
   const handlePublish = async (data) => {
     try {
       const formData = buildFormData(data);
+
       const res = await dispatch(updatePost({ id, formData })).unwrap();
+
       await dispatch(publishPost(id));
+
       toast.success("Post published successfully");
       navigate(`/posts/${res.id}`);
     } catch (err) {
