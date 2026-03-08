@@ -9,7 +9,7 @@ namespace DevLog.Api.Application.DTOs
         [Required]
         public string Content { get; set; }
         public IFormFile? Thumbnail { get; set; }
-
+        public string ThumbnailUrl { get; set; }
         [Required, MaxLength(200)]
         public string Description { get; set; }
     }
