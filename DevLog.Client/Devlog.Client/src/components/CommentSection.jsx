@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   createComment,
   editComment,
@@ -9,20 +10,30 @@ import {
 
 const CommentSection = ({ postId }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { comments, loading, error } = useSelector((state) => state.comments);
+  const { user } = useSelector((state) => state.auth);
 
   const [commentText, setCommentText] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  /* ================= Fetch Comments ================= */
+  /* ================= Fetch ================= */
   useEffect(() => {
-    if (postId) {
-      dispatch(getAllComments(postId));
-    }
+    if (postId) dispatch(getAllComments(postId));
   }, [dispatch, postId]);
 
+  /* ================= Helpers ================= */
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+
   /* ================= Create ================= */
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -32,6 +43,7 @@ const CommentSection = ({ postId }) => {
   };
 
   /* ================= Edit ================= */
+
   const handleEdit = (comment) => {
     setEditingId(comment.commentId);
     setEditText(comment.content);
@@ -53,25 +65,28 @@ const CommentSection = ({ postId }) => {
   };
 
   /* ================= Delete ================= */
+
   const handleDelete = (commentId) => {
     dispatch(deleteComment({ postId, commentId }));
   };
 
-  return (
-    <div className="mt-16 border-t border-zinc-800 pt-12">
-      <h2 className="text-2xl font-semibold mb-10">Discussion</h2>
+  /* ================= UI ================= */
 
-      {/* ================= Comment Form ================= */}
-      <form onSubmit={handleSubmit} className="mb-12">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
+  return (
+    <div className="mt-20 border-t border-zinc-800 pt-14">
+      <h2 className="text-2xl font-semibold mb-10 text-white">Discussion</h2>
+
+      {/* ================= FORM ================= */}
+      <form onSubmit={handleSubmit} className="mb-14">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Share your thoughts..."
+            rows="4"
             className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-4 
             focus:outline-none focus:ring-2 focus:ring-indigo-500 
             resize-none text-gray-200"
-            rows="4"
           />
 
           <div className="flex justify-end mt-5">
@@ -87,24 +102,33 @@ const CommentSection = ({ postId }) => {
         </div>
       </form>
 
-      {error && <p className="text-red-500 mb-8">{error}</p>}
+      {error && <p className="text-red-400 mb-8">{error}</p>}
 
-      {/* ================= Comment List ================= */}
+      {/* ================= COMMENTS ================= */}
+
       {comments.length > 0 ? (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {comments.map((comment) => {
+            const isOwner = user?.id === comment.authorId;
             const isEdited =
               comment.updatedAt && comment.updatedAt !== comment.createdAt;
 
             return (
               <div
                 key={comment.commentId}
-                className="bg-zinc-900 border border-zinc-800 
-                rounded-xl p-6 transition hover:border-zinc-700"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition"
               >
-                {/* ===== Top Section ===== */}
-                <div className="flex justify-between items-start mb-5">
-                  <div className="flex items-center gap-4">
+                {/* ===== HEADER ===== */}
+                <div className="flex justify-between items-start mb-4">
+                  {/* Avatar + Name (Clickable) */}
+                  <div
+                    className="flex items-center gap-4 cursor-pointer group"
+                    onClick={() => {
+                      if (editingId !== comment.commentId) {
+                        navigate(`/profile/${comment.authorId}`);
+                      }
+                    }}
+                  >
                     {/* Avatar */}
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
                       {comment.authorProfile ? (
@@ -120,13 +144,14 @@ const CommentSection = ({ postId }) => {
                       )}
                     </div>
 
-                    {/* Author + Date */}
+                    {/* Name + Date */}
                     <div>
-                      <p className="font-medium text-gray-200">
+                      <p className="font-medium text-gray-200 group-hover:text-indigo-400 transition">
                         {comment.authorName}
                       </p>
+
                       <p className="text-xs text-gray-400">
-                        {new Date(comment.createdAt).toLocaleDateString()}
+                        {formatDate(comment.createdAt)}
                         {isEdited && (
                           <span className="ml-2 italic text-gray-500">
                             (edited)
@@ -136,9 +161,9 @@ const CommentSection = ({ postId }) => {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  {editingId !== comment.commentId && (
-                    <div className="flex gap-5 text-sm">
+                  {/* Actions */}
+                  {isOwner && editingId !== comment.commentId && (
+                    <div className="flex gap-4 text-sm">
                       <button
                         onClick={() => handleEdit(comment)}
                         className="text-indigo-400 hover:text-indigo-300 transition"
@@ -155,38 +180,38 @@ const CommentSection = ({ postId }) => {
                   )}
                 </div>
 
-                {/* ===== Content / Edit Mode ===== */}
+                {/* ===== CONTENT ===== */}
+
                 {editingId === comment.commentId ? (
                   <>
                     <textarea
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
+                      rows="3"
                       className="w-full bg-zinc-800 border border-zinc-700 
                       rounded-lg p-3 focus:outline-none 
                       focus:ring-2 focus:ring-indigo-500 
                       resize-none text-gray-200"
-                      rows="3"
                     />
 
-                    <div className="flex gap-4 mt-5">
+                    <div className="flex gap-4 mt-4">
                       <button
                         onClick={handleUpdate}
-                        className="px-4 py-1 bg-indigo-600 
-                        hover:bg-indigo-500 rounded-md transition"
+                        className="px-4 py-1 bg-indigo-600 hover:bg-indigo-500 rounded-md"
                       >
                         Save
                       </button>
+
                       <button
                         onClick={() => setEditingId(null)}
-                        className="px-4 py-1 bg-zinc-700 
-                        hover:bg-zinc-600 rounded-md transition"
+                        className="px-4 py-1 bg-zinc-700 hover:bg-zinc-600 rounded-md"
                       >
                         Cancel
                       </button>
                     </div>
                   </>
                 ) : (
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                     {comment.content}
                   </p>
                 )}
