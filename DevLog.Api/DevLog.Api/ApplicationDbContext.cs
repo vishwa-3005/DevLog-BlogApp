@@ -21,6 +21,8 @@ namespace DevLog.Api.Infrastructure.Data
         public DbSet<Reaction> Reactions { get; set; }
         public DbSet<UserProfile> UsersProfiles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<PostTag> PostTags { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -65,6 +67,22 @@ namespace DevLog.Api.Infrastructure.Data
 
             modelBuilder.Entity<Reaction>()
                 .HasIndex(r => new { r.PostId, r.UserId })
+                .IsUnique();
+            modelBuilder.Entity<PostTag>()
+        .HasKey(pt => new { pt.PostId, pt.TagId });
+
+            modelBuilder.Entity<PostTag>()
+                .HasOne(pt => pt.Post)
+                .WithMany(p => p.PostTags)
+                .HasForeignKey(pt => pt.PostId);
+
+            modelBuilder.Entity<PostTag>()
+                .HasOne(pt => pt.Tag)
+                .WithMany(t => t.PostTags)
+                .HasForeignKey(pt => pt.TagId);
+
+            modelBuilder.Entity<Tag>()
+                .HasIndex(t => t.Name)
                 .IsUnique();
         }
     }

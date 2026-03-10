@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DevLog.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260221082450_thumbnail_update")]
-    partial class thumbnail_update
+    [Migration("20260309192849_AddTagRelation")]
+    partial class AddTagRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -129,6 +129,21 @@ namespace DevLog.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("DevLog.Api.Models.PostTag", b =>
+                {
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PostId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("PostTags");
+                });
+
             modelBuilder.Entity("DevLog.Api.Models.PostVersion", b =>
                 {
                     b.Property<int>("PostVersionId")
@@ -183,6 +198,26 @@ namespace DevLog.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("DevLog.Api.Models.Tag", b =>
+                {
+                    b.Property<int>("TagId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("TagId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -454,6 +489,25 @@ namespace DevLog.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DevLog.Api.Models.PostTag", b =>
+                {
+                    b.HasOne("Post", "Post")
+                        .WithMany("PostTags")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DevLog.Api.Models.Tag", "Tag")
+                        .WithMany("PostTags")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Tag");
+                });
+
             modelBuilder.Entity("DevLog.Api.Models.PostVersion", b =>
                 {
                     b.HasOne("Post", "Post")
@@ -568,9 +622,16 @@ namespace DevLog.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DevLog.Api.Models.Tag", b =>
+                {
+                    b.Navigation("PostTags");
+                });
+
             modelBuilder.Entity("Post", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("PostTags");
 
                     b.Navigation("Reactions");
 

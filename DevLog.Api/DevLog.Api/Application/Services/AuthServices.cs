@@ -14,7 +14,7 @@ using System.Text;
 using BCrypt.Net;
 using Azure.Core;
 using Azure;
-using DevLog.Api.Migrations;
+
 
 namespace DevLog.Api.Application.Services
 {

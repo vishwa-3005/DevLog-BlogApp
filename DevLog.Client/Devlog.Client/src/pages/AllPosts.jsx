@@ -1,24 +1,92 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPosts } from "../features/posts/postSlice";
+import {
+  fetchPosts,
+  fetchPostsByTags,
+  fetchTags,
+} from "../features/posts/postSlice";
 import { Link } from "react-router-dom";
 
 function AllPosts() {
   const dispatch = useDispatch();
-  const { posts, loading, error } = useSelector((state) => state.posts);
 
+  const { posts, tags, loading, error } = useSelector((state) => state.posts);
+
+  // ✅ selected tags state
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  //
+  // ✅ INITIAL LOAD
+  //
   useEffect(() => {
+    dispatch(fetchTags());
     dispatch(fetchPosts());
   }, [dispatch]);
+
+  //
+  // ✅ FILTER WHEN TAGS CHANGE
+  //
+  useEffect(() => {
+    if (selectedTags.length === 0) {
+      dispatch(fetchPosts());
+    } else {
+      dispatch(fetchPostsByTags(selectedTags.join(",")));
+    }
+  }, [selectedTags, dispatch]);
+
+  //
+  // ✅ TOGGLE TAG
+  //
+  const toggleTag = (tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
+
+  //
+  // ✅ CLEAR FILTER
+  //
+  const clearFilters = () => setSelectedTags([]);
 
   return (
     <div>
       {/* Heading */}
-      <div className="mb-12">
+      <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight">Explore DevLogs</h1>
         <p className="text-zinc-400 mt-3">
           Discover technical insights from developers.
         </p>
+      </div>
+
+      {/* ✅ TAG FILTER TABS */}
+      <div className="flex gap-3 mb-8 flex-wrap items-center">
+        {tags?.map((tag) => {
+          const active = selectedTags.includes(tag);
+
+          return (
+            <button
+              key={tag}
+              onClick={() => toggleTag(tag)}
+              className={`px-4 py-2 rounded-full border text-sm transition ${
+                active
+                  ? "bg-indigo-600 border-indigo-500"
+                  : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+              }`}
+            >
+              {tag}
+            </button>
+          );
+        })}
+
+        {/* Clear Button */}
+        {selectedTags.length > 0 && (
+          <button
+            onClick={clearFilters}
+            className="ml-2 px-4 py-2 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 text-sm"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Loading */}
@@ -35,7 +103,7 @@ function AllPosts() {
 
       {/* Empty */}
       {!loading && !error && posts?.length === 0 && (
-        <div className="text-zinc-500">No posts available yet.</div>
+        <div className="text-zinc-500">No posts available.</div>
       )}
 
       {/* Grid */}
@@ -58,7 +126,7 @@ function AllPosts() {
 
               {/* Content */}
               <div className="flex flex-col flex-grow p-6">
-                {/* Top Content */}
+                {/* Title */}
                 <div>
                   <h2 className="text-xl font-semibold group-hover:text-emerald-400 transition">
                     {post.title}
@@ -69,7 +137,7 @@ function AllPosts() {
                   </p>
                 </div>
 
-                {/* Bottom Meta */}
+                {/* Meta */}
                 <div className="flex items-center justify-between mt-auto pt-6 text-xs text-zinc-500">
                   <div>
                     <span className="text-zinc-300">{post.authorName}</span>

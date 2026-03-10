@@ -16,8 +16,9 @@ namespace DevLog.Api.Application.Interfaces
         // Update
         Task<int> UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId);
         Task PublishAsync(int postId, string authorId);
-
+        public Task<List<string>> GetAllTagsAsync();
         // Delete 
+        Task<List<PostSummaryDto>> GetPostsByTagsAsync(string tags);
         Task ArchiveAsync(int postId, string authorId);
     }
 }
