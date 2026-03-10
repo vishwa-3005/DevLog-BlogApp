@@ -11,6 +11,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
     control,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -18,46 +19,59 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
       description: "",
       content: "",
       thumbnail: null,
+      tags: "", // ✅ NEW
     },
   });
 
   const dispatch = useDispatch();
+
   const { thumbnailUrl, requesting: aiLoading } = useSelector(
     (state) => state.ai,
   );
 
-  // reset form when editing
+  // ✅ RESET WHEN EDITING
   useEffect(() => {
     if (initialData) {
       reset({
         title: initialData.title || "",
         description: initialData.description || "",
         content: initialData.content || "",
-        thumbnail: thumbnailUrl,
+        thumbnail: null,
+        tags: initialData.tags?.join(", ") || "", // ✅ important
       });
     }
-  }, [initialData, reset, thumbnailUrl, dispatch]);
+  }, [initialData, reset]);
 
-  // generate thumbnail
+  // ✅ GENERATE THUMBNAIL
   const handleGenerate = () => {
     const title = watch("title");
-
     if (!title) return;
-
     dispatch(generateThumbnail(title));
   };
+
   const thumbnailFile = watch("thumbnail");
 
-  // priority:
-  // 1 → uploaded file
-  // 2 → AI image
+  // ✅ PREVIEW LOGIC
   let previewUrl = null;
-  if (thumbnailUrl) previewUrl = thumbnailUrl;
   if (thumbnailFile?.[0]) {
     previewUrl = URL.createObjectURL(thumbnailFile[0]);
   } else if (thumbnailUrl) {
     previewUrl = thumbnailUrl;
   }
+
+  // ✅ FINAL SUBMIT FORMATTER (IMPORTANT)
+  const formatSubmit = (data) => {
+    return {
+      ...data,
+      tags: data.tags
+        ? data.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [],
+    };
+  };
+
   return (
     <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Editor */}
@@ -105,11 +119,25 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
           />
         </div>
 
+        {/* ✅ TAG INPUT */}
+        <div>
+          <label className="block mb-2 font-medium">Tags</label>
+
+          <input
+            {...register("tags")}
+            placeholder="dotnet, backend, react"
+            className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700"
+          />
+
+          <p className="text-xs text-zinc-400 mt-1">
+            Separate tags with commas
+          </p>
+        </div>
+
         {/* Thumbnail */}
         <div>
           <label className="block mb-2 font-medium">Thumbnail</label>
 
-          {/* Hidden input */}
           <input
             type="file"
             id="thumbnailUpload"
@@ -118,14 +146,13 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
             className="hidden"
           />
 
-          {/* Custom button */}
           <label
             htmlFor="thumbnailUpload"
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 cursor-pointer transition"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 cursor-pointer"
           >
             📁 Choose Thumbnail
           </label>
-          {/* Generate Button */}
+
           <button
             type="button"
             onClick={handleGenerate}
@@ -134,13 +161,14 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
           >
             {aiLoading ? "Generating..." : "Generate with AI"}
           </button>
-          {/* Selected file name */}
+
           {watch("thumbnail")?.[0]?.name && (
             <p className="mt-2 text-sm text-zinc-400">
               Selected: {watch("thumbnail")[0].name}
             </p>
           )}
         </div>
+
         {previewUrl && (
           <div className="mt-4">
             <p className="text-sm text-zinc-400 mb-2">Preview</p>
@@ -152,12 +180,13 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
             />
           </div>
         )}
+
         {/* Buttons */}
         <div className="flex gap-3">
           <button
             type="button"
             disabled={loading}
-            onClick={handleSubmit(onSubmitDraft)}
+            onClick={handleSubmit((d) => onSubmitDraft(formatSubmit(d)))}
             className="flex-1 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600"
           >
             Save Draft
@@ -166,7 +195,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
           <button
             type="button"
             disabled={loading}
-            onClick={handleSubmit(onSubmitPublish)}
+            onClick={handleSubmit((d) => onSubmitPublish(formatSubmit(d)))}
             className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
           >
             Publish

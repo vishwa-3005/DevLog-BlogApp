@@ -4,6 +4,7 @@ import reducer from "../auth/authSlice";
 
 const initialState = {
   posts: [],
+  tags: [],
   currentPost: null,
   loading: true,
   error: null,
@@ -127,6 +128,35 @@ export const toggleLike = createAsyncThunk(
     }
   },
 );
+
+export const fetchPostsByTags = createAsyncThunk(
+  "posts/getByTags",
+  async (tags, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get(
+        `/api/posts/by-tags?tags=${tags}`,
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to fetch filtered posts!",
+      );
+    }
+  },
+);
+
+export const fetchTags = createAsyncThunk(
+  "posts/getTags",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/api/posts/tags");
+      return res.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to fetch tags");
+    }
+  },
+);
+
 const postSlice = createSlice({
   name: "posts",
   initialState,
@@ -182,6 +212,21 @@ const postSlice = createSlice({
       .addCase(updatePost.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
+      })
+      .addCase(fetchPostsByTags.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPostsByTags.fulfilled, (state, action) => {
+        state.posts = action.payload;
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(fetchPostsByTags.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchTags.fulfilled, (state, action) => {
+        state.tags = action.payload;
       })
       .addCase(toggleLike.fulfilled, (state, action) => {
         const { id, likeCount } = action.payload;

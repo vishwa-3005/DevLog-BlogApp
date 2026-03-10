@@ -23,71 +23,71 @@ namespace DevLog.Api.Application.Services
         }
 
         // Create
-        public async Task<int> CreateDraftAsync(CreatePostDto dto, string authorId) //post id
+        public async Task<int> CreateDraftAsync(CreatePostDto dto, string authorId)
         {
-                if(dto.Thumbnail != null)
+            string thumbnailUrl = dto.ThumbnailUrl ?? "";
+            string thumbnailPublicId = "";
+
+            if (dto.Thumbnail != null)
             {
                 var res = await _cs.UploadPhotoAsync(dto.Thumbnail);
                 if (res == null) throw new Exception("Failed to upload photo on cloudinary!");
-                var newPost = new Post
-                {
-                    AuthorId = authorId,
-                    Content = dto.Content,
-                    Description = dto.Description,
-                    ThumbnailUrl = res.SecureUrl.AbsoluteUri,
-                    ThumbnailPublicId = res.PublicId,
-                    Title = dto.Title,
-                    Slug = generateSlug(dto.Title),
-                    CreatedAt = DateTime.UtcNow,
-                    Status = PostStatus.Draft
-                };
 
-
-                await _db.Posts.AddAsync(newPost);
-                await _db.SaveChangesAsync();
-
-                var version = new PostVersion
-                {
-                    PostId = newPost.PostId,
-                    CreatedAt = DateTime.Now,
-                    UpdateddAt = DateTime.Now
-                };
-
-                await _db.PostVersions.AddAsync(version);
-                return newPost.PostId;
+                thumbnailUrl = res.SecureUrl.AbsoluteUri;
+                thumbnailPublicId = res.PublicId;
             }
-                else
+
+            var newPost = new Post
             {
-                var newPost = new Post
+                AuthorId = authorId,
+                Content = dto.Content,
+                Description = dto.Description,
+                ThumbnailUrl = thumbnailUrl,
+                ThumbnailPublicId = thumbnailPublicId,
+                Title = dto.Title,
+                Slug = generateSlug(dto.Title),
+                CreatedAt = DateTime.UtcNow,
+                Status = PostStatus.Draft
+            };
+
+            await _db.Posts.AddAsync(newPost);
+            await _db.SaveChangesAsync(); // get PostId
+
+            // TAGS LOGIC (IMPORTANT)
+            if (dto.Tags != null && dto.Tags.Any())
+            {
+                foreach (var tagName in dto.Tags.Select(t => t.Trim().ToLower()))
                 {
-                    AuthorId = authorId,
-                    Content = dto.Content,
-                    Description = dto.Description,
-                    ThumbnailUrl = dto.ThumbnailUrl,
-                    ThumbnailPublicId = dto.ThumbnailUrl,
-                    Title = dto.Title,
-                    Slug = generateSlug(dto.Title),
-                    CreatedAt = DateTime.UtcNow,
-                    Status = PostStatus.Draft
+                    var tag = await _db.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
 
-                };
+                    if (tag == null)
+                    {
+                        tag = new Tag { Name = tagName };
+                        _db.Tags.Add(tag);
+                        await _db.SaveChangesAsync();
+                    }
 
+                    _db.PostTags.Add(new PostTag
+                    {
+                        PostId = newPost.PostId,
+                        TagId = tag.TagId
+                    });
+                }
 
-                await _db.Posts.AddAsync(newPost);
                 await _db.SaveChangesAsync();
-
-                var version = new PostVersion
-                {
-                    PostId = newPost.PostId,
-                    CreatedAt = DateTime.Now,
-                    UpdateddAt = DateTime.Now
-                };
-
-                await _db.PostVersions.AddAsync(version);
-                await _db.SaveChangesAsync();
-                return newPost.PostId;
             }
-            
+
+            // version
+            _db.PostVersions.Add(new PostVersion
+            {
+                PostId = newPost.PostId,
+                CreatedAt = DateTime.UtcNow,
+                UpdateddAt = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+
+            return newPost.PostId;
         }
 
         // Read
@@ -249,6 +249,43 @@ namespace DevLog.Api.Application.Services
             });*/
 
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<PostSummaryDto>> GetPostsByTagsAsync(string tags)
+        {
+            var tagList = tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                              .Select(t => t.Trim().ToLower())
+                              .ToList();
+
+            var posts = await _db.Posts
+                .Where(p => p.Status == PostStatus.Published)
+                .Where(p => tagList.All(tag =>
+                    p.PostTags.Any(pt => pt.Tag.Name == tag)))
+                .Select(p => new PostSummaryDto
+                {
+                    PostId = p.PostId,
+                    Thumbnail = p.ThumbnailUrl,
+                    Title = p.Title,
+                    Slug = p.Slug,
+                    Description = p.Description,
+                    AuthorName = p.Author.UserName,
+                    CreatedAt = p.CreatedAt,
+                    LikeCount = p.Reactions.Count()
+                })
+                .ToListAsync();
+
+            return posts;
+        }
+
+
+        public async Task<List<string>> GetAllTagsAsync()
+        {
+            var tags = await _db.Tags
+                .Select(t => t.Name)
+                .OrderBy(t => t)
+                .ToListAsync();
+
+            return tags;
         }
 
         #region helper functions

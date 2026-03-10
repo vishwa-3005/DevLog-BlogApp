@@ -3,7 +3,7 @@ using DevLog.Api.Application.Interfaces;
 using DevLog.Api.Common.Enums;
 using DevLog.Api.Common.Exceptions;
 using DevLog.Api.Infrastructure.Data;
-using DevLog.Api.Migrations;
+
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 

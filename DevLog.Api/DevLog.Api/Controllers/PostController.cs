@@ -4,6 +4,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace DevLog.Api.Controllers
@@ -52,6 +53,19 @@ namespace DevLog.Api.Controllers
         {
             var posts = await _postService.GetByAuthorAsync(authorId);
             return Ok(posts);
+        }
+        [HttpGet("by-tags")]
+        public async Task<IActionResult> GetByTags([FromQuery] string tags)
+        {
+            var result = await _postService.GetPostsByTagsAsync(tags);
+            return Ok(result);
+        }
+
+        [HttpGet("tags")]
+        public async Task<IActionResult> GetAllTags()
+        {
+            var tags = await _postService.GetAllTagsAsync();
+            return Ok(tags);
         }
 
         [HttpPut("{id}")]

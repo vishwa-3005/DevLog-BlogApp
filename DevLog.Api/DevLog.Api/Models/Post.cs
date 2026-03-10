@@ -25,4 +25,5 @@ public class Post
     public List<Comment> Comments { get; set; }
     public List<Reaction> Reactions { get; set; }
     public List<PostVersion> Versions { get; set; }
+    public List<PostTag> PostTags { get; set; }
 }
