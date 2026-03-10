@@ -1,17 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm, Controller } from "react-hook-form";
 import BlogEditor from "./BlogEditor.jsx";
 import { generateThumbnail } from "../features/ai/aiSlice.js";
 
 function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
+  const [focusMode, setFocusMode] = useState(false);
+
   const {
     register,
     handleSubmit,
     control,
     reset,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -19,7 +20,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
       description: "",
       content: "",
       thumbnail: null,
-      tags: "", // ✅ NEW
+      tags: "",
     },
   });
 
@@ -29,7 +30,6 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
     (state) => state.ai,
   );
 
-  // ✅ RESET WHEN EDITING
   useEffect(() => {
     if (initialData) {
       reset({
@@ -37,12 +37,11 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
         description: initialData.description || "",
         content: initialData.content || "",
         thumbnail: null,
-        tags: initialData.tags?.join(", ") || "", // ✅ important
+        tags: initialData.tags?.join(", ") || "",
       });
     }
   }, [initialData, reset]);
 
-  // ✅ GENERATE THUMBNAIL
   const handleGenerate = () => {
     const title = watch("title");
     if (!title) return;
@@ -51,39 +50,35 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
 
   const thumbnailFile = watch("thumbnail");
 
-  // ✅ PREVIEW LOGIC
   let previewUrl = null;
-  if (thumbnailFile?.[0]) {
-    previewUrl = URL.createObjectURL(thumbnailFile[0]);
-  } else if (thumbnailUrl) {
-    previewUrl = thumbnailUrl;
-  }
+  if (thumbnailFile?.[0]) previewUrl = URL.createObjectURL(thumbnailFile[0]);
+  else if (thumbnailUrl) previewUrl = thumbnailUrl;
 
-  // ✅ FINAL SUBMIT FORMATTER (IMPORTANT)
-  const formatSubmit = (data) => {
-    return {
-      ...data,
-      tags: data.tags
-        ? data.tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : [],
-    };
-  };
+  const formatSubmit = (data) => ({
+    ...data,
+    tags: data.tags
+      ? data.tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : [],
+  });
 
   return (
-    <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Editor */}
-      <div className="lg:col-span-2 bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-        <label className="block mb-3 font-medium">Content</label>
-
+    <form className="flex gap-8 min-h-[calc(100vh-120px)]">
+      {/* ================= LEFT — EDITOR ================= */}
+      <div className="flex-1">
         <Controller
           name="content"
           control={control}
           rules={{ required: "Content is required" }}
           render={({ field }) => (
-            <BlogEditor value={field.value} onChange={field.onChange} />
+            <BlogEditor
+              value={field.value || ""}
+              onChange={field.onChange}
+              onFocus={() => setFocusMode(true)}
+              onBlur={() => setFocusMode(false)}
+            />
           )}
         />
 
@@ -92,51 +87,40 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
         )}
       </div>
 
-      {/* Settings */}
-      <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6 h-fit">
-        {/* Title */}
+      {/* ================= RIGHT — SETTINGS ================= */}
+      <div className="w-[360px] bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6 h-fit">
+        {/* TITLE */}
         <div>
-          <label className="block mb-2 font-medium">Title</label>
-
+          <label className="block text-sm font-medium mb-2">Title</label>
           <input
             {...register("title", { required: "Title is required" })}
-            className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700"
+            className="w-full px-4 py-3 rounded-lg bg-zinc-950 border border-zinc-800 focus:border-indigo-500 outline-none"
           />
-
-          {errors.title && (
-            <p className="text-red-400 text-sm">{errors.title.message}</p>
-          )}
         </div>
 
-        {/* Description */}
+        {/* DESCRIPTION */}
         <div>
-          <label className="block mb-2 font-medium">Description</label>
-
+          <label className="block text-sm font-medium mb-2">Description</label>
           <textarea
             {...register("description", { required: true })}
-            rows={4}
-            className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700"
+            rows={3}
+            className="w-full px-4 py-3 rounded-lg bg-zinc-950 border border-zinc-800 focus:border-indigo-500 outline-none"
           />
         </div>
 
-        {/* ✅ TAG INPUT */}
+        {/* TAGS */}
         <div>
-          <label className="block mb-2 font-medium">Tags</label>
-
+          <label className="block text-sm font-medium mb-2">Tags</label>
           <input
             {...register("tags")}
-            placeholder="dotnet, backend, react"
-            className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700"
+            placeholder="dotnet, backend"
+            className="w-full px-4 py-3 rounded-lg bg-zinc-950 border border-zinc-800 focus:border-indigo-500 outline-none"
           />
-
-          <p className="text-xs text-zinc-400 mt-1">
-            Separate tags with commas
-          </p>
         </div>
 
-        {/* Thumbnail */}
+        {/* THUMBNAIL */}
         <div>
-          <label className="block mb-2 font-medium">Thumbnail</label>
+          <label className="block text-sm font-medium mb-2">Thumbnail</label>
 
           <input
             type="file"
@@ -148,9 +132,9 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
 
           <label
             htmlFor="thumbnailUpload"
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 cursor-pointer"
+            className="flex justify-center px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 cursor-pointer"
           >
-            📁 Choose Thumbnail
+            Choose Thumbnail
           </label>
 
           <button
@@ -162,32 +146,21 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
             {aiLoading ? "Generating..." : "Generate with AI"}
           </button>
 
-          {watch("thumbnail")?.[0]?.name && (
-            <p className="mt-2 text-sm text-zinc-400">
-              Selected: {watch("thumbnail")[0].name}
-            </p>
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              className="mt-4 rounded-lg border border-zinc-700 max-h-56 w-full object-cover"
+            />
           )}
         </div>
 
-        {previewUrl && (
-          <div className="mt-4">
-            <p className="text-sm text-zinc-400 mb-2">Preview</p>
-
-            <img
-              src={previewUrl}
-              alt="Thumbnail preview"
-              className="w-full rounded-lg border border-zinc-700 object-cover max-h-56"
-            />
-          </div>
-        )}
-
-        {/* Buttons */}
-        <div className="flex gap-3">
+        {/* BUTTONS */}
+        <div className="flex gap-3 pt-2">
           <button
             type="button"
             disabled={loading}
             onClick={handleSubmit((d) => onSubmitDraft(formatSubmit(d)))}
-            className="flex-1 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600"
+            className="flex-1 px-4 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700"
           >
             Save Draft
           </button>
@@ -196,7 +169,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
             type="button"
             disabled={loading}
             onClick={handleSubmit((d) => onSubmitPublish(formatSubmit(d)))}
-            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500"
+            className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
           >
             Publish
           </button>

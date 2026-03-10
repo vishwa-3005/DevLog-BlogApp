@@ -23,6 +23,7 @@ namespace DevLog.Api.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<PostTag> PostTags { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -58,13 +59,6 @@ namespace DevLog.Api.Infrastructure.Data
                 .HasForeignKey(pv => pv.PostId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<UserProfile>()
-                .HasOne(up => up.User)
-                .WithOne()
-                .HasForeignKey<UserProfile>(up => up.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-
             modelBuilder.Entity<Reaction>()
                 .HasIndex(r => new { r.PostId, r.UserId })
                 .IsUnique();
@@ -84,6 +78,12 @@ namespace DevLog.Api.Infrastructure.Data
             modelBuilder.Entity<Tag>()
                 .HasIndex(t => t.Name)
                 .IsUnique();
+
+            modelBuilder.Entity<UserProfile>()
+                .HasOne(p => p.User)
+                .WithOne(u => u.Profile)
+                .HasForeignKey<UserProfile>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

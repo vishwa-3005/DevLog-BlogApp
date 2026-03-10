@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { archivePost, getPostById } from "../features/posts/postSlice.js";
+import {
+  archivePost,
+  getPostById,
+  toggleLike,
+} from "../features/posts/postSlice.js";
 import NotFound from "./NotFound.jsx";
-import { toggleLike } from "../features/posts/postSlice.js";
 import CommentSection from "../components/CommentSection.jsx";
 import Prism from "prismjs";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
 
@@ -14,32 +18,53 @@ function SinglePost() {
   const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useDispatch();
+
   const { user } = useSelector((state) => state.auth);
   const { currentPost, loading, error } = useSelector((state) => state.posts);
-  const [commentText, setCommentText] = useState("");
-  const reactionHandler = async (postId) => {
-    await dispatch(toggleLike(postId));
-  };
-  const deleteHandler = async () => {
-    await dispatch(archivePost(id));
-  };
+
+  //  FETCH POST
   useEffect(() => {
     dispatch(getPostById(id));
   }, [dispatch, id]);
 
+  //  HIGHLIGHT CODE
   useEffect(() => {
-    if (currentPost) {
-      Prism.highlightAll();
-    }
+    if (currentPost) Prism.highlightAll();
   }, [currentPost]);
+
+  // LIKE HANDLER
+
+  const reactionHandler = async () => {
+    try {
+      await dispatch(toggleLike(currentPost.id)).unwrap();
+    } catch {
+      toast.error("Failed to update reaction");
+    }
+  };
+
+  // DELETE HANDLER
+
+  const deleteHandler = async () => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      await dispatch(archivePost(id)).unwrap();
+      toast.success("Post deleted successfully");
+      navigate("/posts");
+    } catch {
+      toast.error("Failed to delete post");
+    }
+  };
+
+  //  LOADING
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
+      <div className="min-h-screen flex items-center justify-center text-zinc-400">
         Loading article...
       </div>
     );
-
+  //  ERROR
   if (error)
     return (
       <div className="min-h-screen flex items-center justify-center text-red-400">
@@ -48,86 +73,115 @@ function SinglePost() {
     );
 
   if (!currentPost) return <NotFound />;
-  const isDraft = currentPost.status === "Draft";
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#0b1220] text-gray-200">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        {/* Hero */}
-        <div className="mb-14 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight bg-gradient-to-r from-emerald-400 to-indigo-500 bg-clip-text text-transparent">
-            {currentPost.title}
-          </h1>
+    <div className="space-y-12">
+      {/* ================= HERO ================= */}
+      <div className="text-center max-w-3xl mx-auto space-y-6">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-tight">
+          {currentPost.title}
+        </h1>
 
-          <div className="mt-6 flex justify-center items-center gap-4 text-sm text-gray-400">
-            <span>{currentPost.authorName}</span>
-            <span>•</span>
-            <span>{new Date(currentPost.createdAt).toLocaleDateString()}</span>
-          </div>
+        <div className="flex items-center justify-center gap-3 text-sm text-zinc-400">
+          {/* USERNAME CLICK */}
+          <button
+            onClick={() => navigate(`/profile/${currentPost.authorId}`)}
+            className="text-zinc-300 hover:text-indigo-400 transition font-medium"
+          >
+            {currentPost.authorName}
+          </button>
+
+          <span>•</span>
+
+          <span>{new Date(currentPost.createdAt).toLocaleDateString()}</span>
         </div>
+      </div>
 
-        {/* Thumbnail */}
-        {currentPost.thumbnailUrl && (
-          <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
-            <img
-              src={currentPost.thumbnailUrl}
-              alt="Thumbnail"
-              className="w-full object-cover max-h-[500px] transition-transform duration-500 hover:scale-105"
-            />
-          </div>
-        )}
-
-        {/* Article Content */}
-        <div className="bg-[#111827] border border-gray-800 rounded-2xl p-8 md:p-12 shadow-lg">
-          <div
-            className="
-              prose prose-invert prose-lg max-w-none
-              prose-pre:bg-zinc-900
-              prose-pre:border prose-pre:border-zinc-800
-              prose-pre:rounded-xl
-              prose-pre:p-6
-              prose-pre:overflow-x-auto
-              prose-code:text-emerald-400
-              prose-code:before:content-none
-              prose-code:after:content-none
-              prose-headings:text-white
-              prose-strong:text-white
-              prose-a:text-indigo-400
-            "
-            dangerouslySetInnerHTML={{ __html: currentPost.content }}
+      {/* ================= THUMBNAIL ================= */}
+      {currentPost.thumbnailUrl && (
+        <div className="rounded-xl overflow-hidden border border-zinc-800">
+          <img
+            src={currentPost.thumbnailUrl}
+            alt="Thumbnail"
+            className="w-full object-cover max-h-[460px]"
           />
         </div>
+      )}
 
-        {/* Engagement */}
-        <div className="mt-12 border-t border-gray-800 pt-8 flex justify-between items-center">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => reactionHandler(currentPost.id)}
-            className="flex items-center gap-2 px-5 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl transition"
-          >
-            ❤️ {currentPost.likeCount}
-          </button>
-          {user && currentPost.authorId === user.id && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => navigate(`/posts/${currentPost.id}/edit`)}
-                className="px-4 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-500"
-              >
-                Edit
-              </button>
+      {/* ================= CONTENT ================= */}
+      <div className="max-w-3xl mx-auto">
+        <div
+          className="
+            prose prose-invert max-w-none
+            prose-headings:text-white
+            prose-strong:text-white
+            prose-p:text-zinc-300
+            prose-a:text-indigo-400
+            prose-pre:bg-zinc-900
+            prose-pre:border prose-pre:border-zinc-800
+            prose-pre:rounded-xl
+            prose-pre:p-5
+            prose-code:text-emerald-400
+            prose-code:before:content-none
+            prose-code:after:content-none
+          "
+          dangerouslySetInnerHTML={{ __html: currentPost.content }}
+        />
+      </div>
 
-              <button
-                onClick={deleteHandler}
-                className="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          )}
+      {/* ================= ENGAGEMENT ================= */}
+      <div className="max-w-3xl mx-auto border-t border-zinc-800 pt-8 flex items-center justify-between">
+        {/* LIKE BUTTON */}
+        <button
+          type="button"
+          disabled={loading}
+          onClick={reactionHandler}
+          className="
+      flex items-center gap-2 px-4 py-2 rounded-lg
+      border border-zinc-700
+      bg-zinc-900 hover:bg-zinc-800
+      hover:border-indigo-500/40
+      transition-all duration-200
+      text-sm font-medium
+    "
+        >
+          ❤️ {currentPost.likeCount}
+        </button>
 
-          <span className="text-gray-400 text-sm">Comments</span>
-        </div>
+        {/* AUTHOR ACTIONS */}
+        {user && currentPost.authorId === user.id && (
+          <div className="flex gap-3">
+            {/* EDIT */}
+            <button
+              onClick={() => navigate(`/posts/${currentPost.id}/edit`)}
+              className="
+          px-4 py-2 rounded-lg text-sm font-medium
+          bg-indigo-600 hover:bg-indigo-500
+          shadow-lg shadow-indigo-600/20
+          transition-all duration-200
+        "
+            >
+              Edit
+            </button>
 
+            {/* DELETE */}
+            <button
+              onClick={deleteHandler}
+              className="
+          px-4 py-2 rounded-lg text-sm font-medium
+          bg-red-600 hover:bg-red-500
+          shadow-lg shadow-red-600/20
+          transition-all duration-200
+        "
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ================= COMMENTS ================= */}
+      <div>
         <CommentSection postId={currentPost.id} />
       </div>
     </div>

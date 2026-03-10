@@ -611,12 +611,18 @@ namespace DevLog.Api.Migrations
             modelBuilder.Entity("UserProfile", b =>
                 {
                     b.HasOne("DevLog.Api.Models.AppUser", "User")
-                        .WithOne()
+                        .WithOne("Profile")
                         .HasForeignKey("UserProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DevLog.Api.Models.AppUser", b =>
+                {
+                    b.Navigation("Profile")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DevLog.Api.Models.Tag", b =>

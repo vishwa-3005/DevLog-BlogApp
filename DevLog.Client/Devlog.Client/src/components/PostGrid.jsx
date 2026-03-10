@@ -1,30 +1,44 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+
 function PostGrid({ posts }) {
   const navigate = useNavigate();
+
   if (!posts.length) {
     return (
-      <div className="text-center text-gray-500 mt-10">No posts here yet.</div>
+      <div className="text-center text-zinc-500 mt-16">
+        No posts available yet.
+      </div>
     );
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-6 mt-8">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {posts.map((post) => (
         <div
-          onClick={() => {
-            navigate(`/posts/${post.postId}`);
-          }}
           key={post.postId}
-          className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition"
+          onClick={() => navigate(`/posts/${post.postId}`)}
+          className="
+            group cursor-pointer rounded-xl border border-zinc-800
+            bg-zinc-900/60 backdrop-blur
+            hover:border-emerald-500/40 hover:-translate-y-1
+            transition duration-300 overflow-hidden
+          "
         >
-          <h3 className="font-semibold">{post.title}</h3>
-          <p className="text-sm text-gray-400 mt-2 line-clamp-3">
-            {post.description}
-          </p>
-          <p className="text-xs text-gray-500 mt-4">
-            {new Date(post.UpdatedAt).toLocaleDateString()}
-          </p>
+          {/* Content */}
+          <div className="p-5 space-y-3">
+            <h3 className="font-semibold text-lg group-hover:text-emerald-400 transition">
+              {post.title}
+            </h3>
+
+            <p className="text-sm text-zinc-400 line-clamp-3">
+              {post.description}
+            </p>
+
+            <p className="text-xs text-zinc-500 pt-3">
+              {new Date(post.updatedAt || post.createdAt).toLocaleDateString()}
+            </p>
+          </div>
         </div>
       ))}
     </div>
