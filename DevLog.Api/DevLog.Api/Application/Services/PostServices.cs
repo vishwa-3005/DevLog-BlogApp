@@ -94,7 +94,11 @@ namespace DevLog.Api.Application.Services
         public async Task<PostDetailDto> GetByIdAsync(int postId, string? currentUserId)
         {
 
-            var post = await _db.Posts.Include(p => p.Author).Include(p => p.Reactions).FirstOrDefaultAsync(p => p.PostId == postId);
+            var post = await _db.Posts
+                    .Include(p => p.Author)
+                        .ThenInclude(a => a.Profile)
+                    .Include(p => p.Reactions)
+                    .FirstOrDefaultAsync(p => p.PostId == postId);
             if (post == null)
                 throw new NotFoundException("Post Not Found!");
 
@@ -136,30 +140,35 @@ namespace DevLog.Api.Application.Services
                     Description = p.Description,
                     AuthorName = p.Author.UserName,
                     CreatedAt = p.CreatedAt,
+                    AuthorImage = p.Author.Profile.ProfileImageUrl,
                     LikeCount = p.Reactions.Count()
                 })
             .ToListAsync();
+
             return postSummary;
         }
         public async Task<List<PostSummaryDto>> GetByAuthorAsync(string authorId)
         {
             var list = await _db.Posts
-                .Include(p => p.Author)
-                .Include(p => p.Reactions)
                 .Where(p => p.AuthorId == authorId && p.Status == PostStatus.Published)
-                .Select(p =>
-                new PostSummaryDto
+                .Select(p => new PostSummaryDto
                 {
                     PostId = p.PostId,
                     Thumbnail = p.ThumbnailUrl,
                     Title = p.Title,
                     Slug = p.Slug,
                     Description = p.Description,
+
                     AuthorName = p.Author.UserName,
+
+                    AuthorImage = p.Author.Profile.ProfileImageUrl,
+
                     CreatedAt = p.CreatedAt,
+
                     LikeCount = p.Reactions.Count()
                 })
-            .ToListAsync();
+                .ToListAsync();
+            
 
             return list;
         }

@@ -19,7 +19,6 @@ function Profile() {
     if (id) dispatch(getProfile(id));
   }, [dispatch, id]);
 
-  /* -------- LOADING -------- */
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[60vh] text-zinc-400 animate-pulse">
@@ -28,7 +27,6 @@ function Profile() {
     );
   }
 
-  /* -------- ERROR -------- */
   if (error) {
     return (
       <div className="max-w-xl mx-auto mt-10 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
@@ -39,18 +37,15 @@ function Profile() {
 
   if (!profile) return null;
 
-  /* -------- OWNER CHECK -------- */
   const isOwner = user?.id === profile?.userId;
-  console.log(isOwner);
 
-  /* -------- POSTS FILTER -------- */
   const posts =
     activeTab === "published"
       ? profile.publishedPosts || []
       : profile.draftPosts || [];
 
   return (
-    <div className="max-w-5xl mx-auto p-6 text-white">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       <ProfileHeader profile={profile} isOwner={isOwner} />
 
       <ProfileTabs

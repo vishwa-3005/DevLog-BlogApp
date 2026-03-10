@@ -6,10 +6,8 @@ import { useNavigate } from "react-router-dom";
 function CreatePost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { thumbnailUrl } = useSelector((state) => state.ai);
 
-  //  FIXED FORM DATA BUILDER (FINAL)
   const buildFormData = (data) => {
     const formData = new FormData();
 
@@ -17,19 +15,14 @@ function CreatePost() {
     formData.append("Description", data.description);
     formData.append("Content", data.content);
 
-    // TAGS FIX (MOST IMPORTANT)
     if (Array.isArray(data.tags) && data.tags.length > 0) {
-      data.tags.forEach((tag) => {
-        formData.append("Tags", tag); // MUST MATCH DTO NAME
-      });
+      data.tags.forEach((tag) => formData.append("Tags", tag));
     }
 
-    // manual upload
     if (data.thumbnail?.[0]) {
       formData.append("Thumbnail", data.thumbnail[0]);
     }
 
-    // AI thumbnail
     if (thumbnailUrl) {
       formData.append("ThumbnailUrl", thumbnailUrl);
     }
@@ -37,28 +30,19 @@ function CreatePost() {
     return formData;
   };
 
-  // SAVE DRAFT
   const handleDraft = async (data) => {
     try {
-      const formData = buildFormData(data);
-
-      const res = await dispatch(createPost(formData)).unwrap();
-
+      const res = await dispatch(createPost(buildFormData(data))).unwrap();
       navigate(`/posts/${res.id}/edit`);
     } catch (err) {
       console.error("Draft failed", err);
     }
   };
 
-  // PUBLISH
   const handlePublish = async (data) => {
     try {
-      const formData = buildFormData(data);
-
-      const res = await dispatch(createPost(formData)).unwrap();
-
+      const res = await dispatch(createPost(buildFormData(data))).unwrap();
       await dispatch(publishPost(res.id)).unwrap();
-
       navigate(`/posts/${res.id}`);
     } catch (err) {
       console.error("Publish failed", err);
@@ -66,12 +50,25 @@ function CreatePost() {
   };
 
   return (
-    <PostForm
-      initialData={null}
-      onSubmitDraft={handleDraft}
-      onSubmitPublish={handlePublish}
-      loading={false}
-    />
+    <div className="space-y-8">
+      {/* HEADER */}
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create New Post
+        </h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Write, edit, and publish your article.
+        </p>
+      </div>
+
+      {/* FORM */}
+      <PostForm
+        initialData={null}
+        onSubmitDraft={handleDraft}
+        onSubmitPublish={handlePublish}
+        loading={false}
+      />
+    </div>
   );
 }
 

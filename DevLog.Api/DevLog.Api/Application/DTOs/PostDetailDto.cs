@@ -12,6 +12,7 @@
     public string Description { get; set; }
 
     public string ThumbnailUrl { get; set; }
+    public int ProfileId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

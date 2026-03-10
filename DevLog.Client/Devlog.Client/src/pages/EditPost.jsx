@@ -14,16 +14,13 @@ function EditPost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ✅ FIXED
   const { thumbnailUrl } = useSelector((state) => state.ai);
-
   const { currentPost, loading } = useSelector((state) => state.posts);
 
   useEffect(() => {
     dispatch(getPostById(id));
   }, [dispatch, id]);
 
-  // ✅ FIXED
   const buildFormData = (data) => {
     const formData = new FormData();
 
@@ -31,12 +28,10 @@ function EditPost() {
     formData.append("Content", data.content);
     formData.append("Description", data.description);
 
-    // manual upload
     if (data.thumbnail?.[0]) {
       formData.append("Thumbnail", data.thumbnail[0]);
     }
 
-    // AI thumbnail
     if (thumbnailUrl) {
       formData.append("ThumbnailUrl", thumbnailUrl);
     }
@@ -46,36 +41,40 @@ function EditPost() {
 
   const handleDraft = async (data) => {
     try {
-      const formData = buildFormData(data);
-
-      await dispatch(updatePost({ id, formData })).unwrap();
-
+      await dispatch(
+        updatePost({ id, formData: buildFormData(data) }),
+      ).unwrap();
       toast.success("Draft saved successfully");
-      navigate(`/posts`);
-    } catch (err) {
+      navigate("/posts");
+    } catch {
       toast.error("Failed to save draft");
     }
   };
 
   const handlePublish = async (data) => {
     try {
-      const formData = buildFormData(data);
-
-      const res = await dispatch(updatePost({ id, formData })).unwrap();
-
+      const res = await dispatch(
+        updatePost({ id, formData: buildFormData(data) }),
+      ).unwrap();
       await dispatch(publishPost(id));
-
       toast.success("Post published successfully");
       navigate(`/posts/${res.id}`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to publish post");
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Edit Post</h1>
+    <div className="space-y-8">
+      {/* HEADER */}
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-2xl font-semibold tracking-tight">Edit Post</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Update your content and publish when ready.
+        </p>
+      </div>
 
+      {/* FORM */}
       <PostForm
         initialData={currentPost}
         onSubmitDraft={handleDraft}

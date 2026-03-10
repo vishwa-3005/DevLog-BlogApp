@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { clearAccessToken, setAccessToken } from "./services/tokenService.js";
 import { refreshToken } from "./features/auth/authSlice.js";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import AllPosts from "./pages/AllPosts.jsx";
 import CreatePost from "./pages/CreatePost.jsx";
 import EditPost from "./pages/EditPost.jsx";
@@ -14,22 +14,32 @@ import Login from "./pages/Login.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import SignUp from "./pages/SignUp.jsx";
-import { useDispatch, useSelector } from "react-redux";
 import Profile from "./pages/Profile.jsx";
 import ProfileSettings from "./pages/ProfileSettings.jsx";
+
+import { useDispatch } from "react-redux";
 
 function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const dispatch = useDispatch();
-  //const { loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log("App mounted");
-    dispatch(refreshToken()).finally(setAuthChecked(true));
-  }, []);
+    const initAuth = async () => {
+      try {
+        await dispatch(refreshToken()).unwrap();
+      } catch {
+        // silent (user not logged in is fine)
+      } finally {
+        setAuthChecked(true); // ✅ FIXED (your version was wrong)
+      }
+    };
+
+    initAuth();
+  }, [dispatch]);
+
   if (!authChecked)
     return (
-      <div className="h-screen flex items-center justify-center text-white">
+      <div className="h-screen flex items-center justify-center text-zinc-400">
         Loading...
       </div>
     );
@@ -37,7 +47,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
+        {/* Public */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
         </Route>
@@ -45,7 +55,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
 
-        {/* Protected Routes */}
+        {/* Protected */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             <Route path="/posts" element={<AllPosts />} />
@@ -59,7 +69,17 @@ function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <ToastContainer position="top-right" autoClose={3000} />
+
+      {/* GLOBAL TOAST */}
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="dark"
+      />
     </BrowserRouter>
   );
 }

@@ -6,13 +6,12 @@ import {
   fetchTags,
 } from "../features/posts/postSlice";
 import { Link } from "react-router-dom";
+import PostCardSkeleton from "../components/PostCardSkeleton";
 
 function AllPosts() {
   const dispatch = useDispatch();
-
   const { posts, tags, loading, error } = useSelector((state) => state.posts);
 
-  // ✅ selected tags state
   const [selectedTags, setSelectedTags] = useState([]);
 
   //
@@ -49,71 +48,89 @@ function AllPosts() {
   const clearFilters = () => setSelectedTags([]);
 
   return (
-    <div>
-      {/* Heading */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">Explore DevLogs</h1>
-        <p className="text-zinc-400 mt-3">
-          Discover technical insights from developers.
+    <div className="space-y-10">
+      {/* ================= HEADER ================= */}
+      <div className="space-y-3">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Explore DevLogs
+        </h1>
+
+        <p className="text-zinc-400 text-sm max-w-2xl">
+          Discover technical insights, real-world solutions, and practical
+          knowledge shared by developers.
         </p>
       </div>
 
-      {/* ✅ TAG FILTER TABS */}
-      <div className="flex gap-3 mb-8 flex-wrap items-center">
-        {tags?.map((tag) => {
-          const active = selectedTags.includes(tag);
+      {/* ================= TAG FILTER ================= */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-zinc-400">Filter by tags</h3>
 
-          return (
+          {selectedTags.length > 0 && (
             <button
-              key={tag}
-              onClick={() => toggleTag(tag)}
-              className={`px-4 py-2 rounded-full border text-sm transition ${
-                active
-                  ? "bg-indigo-600 border-indigo-500"
-                  : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-              }`}
+              onClick={clearFilters}
+              className="text-xs text-red-400 hover:text-red-300 transition"
             >
-              {tag}
+              Clear filters
             </button>
-          );
-        })}
+          )}
+        </div>
 
-        {/* Clear Button */}
-        {selectedTags.length > 0 && (
-          <button
-            onClick={clearFilters}
-            className="ml-2 px-4 py-2 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 text-sm"
-          >
-            Clear
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {tags?.map((tag) => {
+            const active = selectedTags.includes(tag);
+
+            return (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                  active
+                    ? "bg-indigo-600 border-indigo-500 text-white"
+                    : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+                }`}
+              >
+                {tag}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Loading */}
+      {/* ================= LOADING ================= */}
       {loading && (
-        <div className="text-zinc-400 animate-pulse">Loading posts...</div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PostCardSkeleton key={i} />
+          ))}
+        </div>
       )}
 
-      {/* Error */}
+      {/* ================= ERROR ================= */}
       {error && (
-        <div className="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
+        <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
           {error}
         </div>
       )}
 
-      {/* Empty */}
+      {/* ================= EMPTY ================= */}
       {!loading && !error && posts?.length === 0 && (
-        <div className="text-zinc-500">No posts available.</div>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-zinc-400 text-lg">No posts found</p>
+          <p className="text-zinc-500 text-sm mt-2">
+            Try adjusting filters or create your first post.
+          </p>
+        </div>
       )}
 
-      {/* Grid */}
+      {/* ================= GRID ================= */}
       {!loading && !error && posts?.length > 0 && (
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <Link
               key={post.postId}
               to={`/posts/${post.postId}`}
-              className="group flex flex-col rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/70 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-emerald-500/40"
+              className="group flex flex-col rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 transition hover:-translate-y-1 hover:border-indigo-500/40"
             >
               {/* Thumbnail */}
               <div className="aspect-video overflow-hidden">
@@ -125,27 +142,33 @@ function AllPosts() {
               </div>
 
               {/* Content */}
-              <div className="flex flex-col flex-grow p-6">
-                {/* Title */}
+              <div className="flex flex-col flex-grow p-5 space-y-4">
+                {/* Title + Description */}
                 <div>
-                  <h2 className="text-xl font-semibold group-hover:text-emerald-400 transition">
+                  <h2 className="text-lg font-semibold leading-tight group-hover:text-indigo-400 transition">
                     {post.title}
                   </h2>
 
-                  <p className="text-zinc-400 text-sm mt-3 line-clamp-3 min-h-[60px]">
+                  <p className="text-zinc-400 text-sm mt-2 line-clamp-2">
                     {post.description}
                   </p>
                 </div>
 
                 {/* Meta */}
-                <div className="flex items-center justify-between mt-auto pt-6 text-xs text-zinc-500">
-                  <div>
+                <div className="flex items-center justify-between text-xs text-zinc-500">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={post.authorImage || "/default-avatar.png"}
+                      alt="author"
+                      className="w-6 h-6 rounded-full"
+                    />
+
                     <span className="text-zinc-300">{post.authorName}</span>
-                    <span className="mx-2">•</span>
+                    <span>•</span>
                     <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                   </div>
 
-                  <div className="px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 flex items-center gap-1 transition group-hover:border-emerald-500/40">
+                  <div className="flex items-center gap-1">
                     <span>❤️</span>
                     <span>{post.likeCount}</span>
                   </div>

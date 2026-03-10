@@ -7,59 +7,75 @@ function ProfileHeader({ profile, isOwner }) {
   if (!profile) return null;
 
   return (
-    <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-zinc-700 pb-6">
-      <img
-        src={profile.profileImage || "/default-avatar.png"}
-        alt="profile"
-        className="w-24 h-24 rounded-full object-cover border border-zinc-600"
-      />
+    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+      {/* Avatar */}
+      <div className="relative">
+        <img
+          src={profile.profileImage || "/default-avatar.png"}
+          alt="profile"
+          className="w-28 h-28 rounded-full object-cover border-2 border-zinc-700 shadow-lg"
+        />
 
-      <div className="text-center md:text-left flex-1">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        {isOwner && (
+          <span className="absolute bottom-1 right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-zinc-900"></span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 text-center md:text-left space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="text-3xl font-bold tracking-tight">
               @{profile.username || "user"}
             </h2>
 
-            <p className="text-sm text-zinc-400">{profile.email}</p>
+            <p className="text-sm text-zinc-400 mt-1">{profile.email}</p>
           </div>
 
           {isOwner && (
             <button
               onClick={() => navigate(`/profile/settings/${profile.userId}`)}
-              className="px-4 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-sm"
+              className="
+                px-5 py-2 rounded-lg text-sm font-medium
+                bg-zinc-800 hover:bg-zinc-700 border border-zinc-700
+                transition
+              "
             >
               Edit Profile
             </button>
           )}
         </div>
 
+        {/* Bio */}
         {profile.bio && (
-          <p className="mt-3 text-sm text-zinc-300">{profile.bio}</p>
+          <p className="text-zinc-300 leading-relaxed max-w-xl">
+            {profile.bio}
+          </p>
         )}
 
-        <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-4 text-sm text-zinc-400">
-          <span>
-            <strong className="text-white">
+        {/* Stats */}
+        <div className="flex flex-wrap justify-center md:justify-start gap-8 pt-2 text-sm text-zinc-400">
+          <div>
+            <p className="text-xl font-semibold text-white">
               {profile.publishedPosts?.length || 0}
-            </strong>{" "}
-            Published
-          </span>
+            </p>
+            <p>Published</p>
+          </div>
 
-          <span>
-            <strong className="text-white">
+          <div>
+            <p className="text-xl font-semibold text-white">
               {profile.draftPosts?.length || 0}
-            </strong>{" "}
-            Drafts
-          </span>
+            </p>
+            <p>Drafts</p>
+          </div>
 
           {profile.dob && (
-            <span>
-              DOB:{" "}
-              <strong className="text-white">
+            <div>
+              <p className="text-xl font-semibold text-white">
                 {new Date(profile.dob).toLocaleDateString()}
-              </strong>
-            </span>
+              </p>
+              <p>DOB</p>
+            </div>
           )}
         </div>
       </div>

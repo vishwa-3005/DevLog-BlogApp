@@ -14,6 +14,7 @@
         public string AuthorName { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public string AuthorImage { get; set; }
 
         public int LikeCount { get; set; }
     }
