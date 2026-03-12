@@ -4,12 +4,16 @@ namespace DevLog.Api.Application.DTOs
 {
     public class UpdatePostDto
     {
-        [Required, MaxLength(100)]
-        public string Title { get; set; }
-        [Required]
-        public string Content { get; set; }
-        public IFormFile? Thumbnail { get; set; }
-        [Required, MaxLength(300)]
-        public string Description { get; set; }
+        [MaxLength(100)]
+        public string? Title { get; set; }
+
+        public string? Content { get; set; }
+
+        public IFormFile? Thumbnail { get; set; }   // backend upload 
+
+        [MaxLength(300)]
+        public string? ThumbnailUrl { get; set; }   // frontend upload 
+
+        public string? Description { get; set; }
     }
 }

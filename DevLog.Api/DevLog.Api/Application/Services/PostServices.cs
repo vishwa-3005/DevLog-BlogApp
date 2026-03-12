@@ -177,34 +177,49 @@ namespace DevLog.Api.Application.Services
         public async Task<int> UpdateDraftAsync(int postId, UpdatePostDto dto, string authorId)
         {
             var post = await _db.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
+
             if (post == null)
                 throw new NotFoundException("Post not found");
 
             if (post.AuthorId != authorId)
                 throw new ForbiddenException("Not the post owner");
 
-            var res = await _cs.UploadPhotoAsync(dto.Thumbnail);
-            if (res == null || res.Error != null)
+            if (dto.Thumbnail != null && !string.IsNullOrWhiteSpace(dto.ThumbnailUrl))
+                throw new BadRequestException("Provide either file or URL");
+
+            // Backend upload
+            if (dto.Thumbnail != null)
             {
-                throw new Exception("Profile image upload failed");
-            }
-            else
-            {
+                var uploadResult = await _cs.UploadPhotoAsync(dto.Thumbnail);
+
+                if (uploadResult == null)
+                    throw new BadRequestException("Thumbnail upload failed");
+
                 if (!string.IsNullOrEmpty(post.ThumbnailPublicId))
-                {
                     await _cs.DeleteImageAsync(post.ThumbnailPublicId);
-                }
-                post.ThumbnailUrl = res.SecureUrl.AbsoluteUri;
-                post.ThumbnailPublicId = res.PublicId;
+
+                post.ThumbnailUrl = uploadResult.SecureUrl.AbsoluteUri;
+                post.ThumbnailPublicId = uploadResult.PublicId;
             }
 
-            if(dto.Title != null) post.Title = dto.Title;
-            post.Content = dto.Content;
-            post.Description = dto.Description;
-            
+            // Frontend upload
+            else if (!string.IsNullOrWhiteSpace(dto.ThumbnailUrl))
+            {
+                post.ThumbnailUrl = dto.ThumbnailUrl;
+                post.ThumbnailPublicId = "";
+            }
+
+            // SAFE updates
+            if (dto.Title != null)
+                post.Title = dto.Title;
+
+            if (dto.Content != null)
+                post.Content = dto.Content;
+
+            if (dto.Description != null)
+                post.Description = dto.Description;
 
             await _db.SaveChangesAsync();
-
 
             return post.PostId;
         }

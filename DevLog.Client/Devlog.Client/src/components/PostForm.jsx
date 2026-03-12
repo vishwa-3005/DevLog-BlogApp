@@ -56,6 +56,7 @@ function PostForm({ initialData, onSubmitDraft, onSubmitPublish, loading }) {
 
   const formatSubmit = (data) => ({
     ...data,
+    thumbnailUrl,
     tags: data.tags
       ? data.tags
           .split(",")
