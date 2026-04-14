@@ -1,6 +1,6 @@
 ﻿using DevLog.Api.Application.DTOs;
 using DevLog.Api.Application.Interfaces;
-using DevLog.Api.Migrations;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

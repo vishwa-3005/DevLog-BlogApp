@@ -1,4 +1,4 @@
-using DevLog.Api.Application.Handlers;
+﻿using DevLog.Api.Application.Handlers;
 using DevLog.Api.Application.Interfaces;
 using DevLog.Api.Application.Services;
 using DevLog.Api.Configurations;
@@ -22,12 +22,13 @@ class Program
         builder.Services.AddControllers();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(
+    builder.Configuration.GetConnectionString("DefaultConnection")));
 
         builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
         {
             options.Password.RequiredLength = 6;
+
             options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -64,24 +65,23 @@ class Program
 
         builder.Services.AddAuthorization();
 
+        // ✅ FIXED CORS (dev + production)
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
-                policy.WithOrigins("http://localhost:5173") // exact frontend origin
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials(); // required for cookies
+                policy
+                    .AllowAnyOrigin() // for now (later restrict to Vercel URL)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
             });
         });
 
         builder.Services.AddEndpointsApiExplorer();
+
         builder.Services.AddSwaggerGen(options =>
         {
-            options.AddServer(new OpenApiServer
-            {
-                Url = "https://localhost:7140"
-            });
+            // ❌ removed localhost hardcoding
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
@@ -94,36 +94,36 @@ class Program
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
                 }
-            },
-            Array.Empty<string>()
-        }
-    });
+            });
         });
 
         builder.Services.Configure<CloudinarySettings>(
             builder.Configuration.GetSection("Cloudinary"));
 
-
         // Global exception handling
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-        builder.Services.AddProblemDetails(); // recommended
-
-        // Build app
+        builder.Services.AddProblemDetails();
 
         var app = builder.Build();
 
+        // ✅ CRITICAL: Render port binding
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        app.Urls.Add($"http://0.0.0.0:{port}");
+
         // Middleware
 
-        //  Must be EARLY
         app.UseExceptionHandler();
 
         if (app.Environment.IsDevelopment())
@@ -135,7 +135,8 @@ class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        // ❌ optional (can keep or remove)
+        // app.UseHttpsRedirection();
 
         app.UseCors("AllowFrontend");
 
