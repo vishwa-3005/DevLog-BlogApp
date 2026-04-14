@@ -12,8 +12,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BCrypt.Net;
-using Azure.Core;
-using Azure;
+
 
 
 namespace DevLog.Api.Application.Services
