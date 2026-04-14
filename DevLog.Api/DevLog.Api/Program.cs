@@ -126,14 +126,13 @@ class Program
 
         app.UseExceptionHandler();
 
-        if (app.Environment.IsDevelopment())
-        {
+        
             using var scope = app.Services.CreateScope();
             await IdentitySeed.SeedRolesAndAdmin(scope.ServiceProvider);
 
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
+        
 
         // ❌ optional (can keep or remove)
         // app.UseHttpsRedirection();
